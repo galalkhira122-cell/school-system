@@ -27,6 +27,12 @@ function Students(){
   const [open,setOpen] = useState(false);
   const [editMode,setEditMode] = useState(false);
 
+  const [attendanceOpen,setAttendanceOpen] = useState(false);
+  const [attendanceStudent,setAttendanceStudent] = useState(null);
+  const [attendanceMonth,setAttendanceMonth] = useState("");
+  const [attendanceYear,setAttendanceYear] = useState(new Date().getFullYear());
+  const [attendanceRecords,setAttendanceRecords] = useState([]);
+
   const [form,setForm] = useState({
     oldSeat:"",
     seat:"",
@@ -288,6 +294,173 @@ function Students(){
 
   }
 
+  function openAttendance(row){
+
+    setAttendanceStudent(row);
+    setAttendanceMonth("");
+    setAttendanceYear(new Date().getFullYear());
+    setAttendanceRecords([]);
+    setAttendanceOpen(true);
+
+  }
+
+  async function loadStudentMonthAttendance(){
+
+  try{
+
+    if(!attendanceStudent){
+
+      showMessage(
+        "اختر طالبة أولًا",
+        "warning"
+      );
+
+      return;
+
+    }
+
+    if(!attendanceMonth){
+
+      showMessage(
+        "اختر الشهر",
+        "warning"
+      );
+
+      return;
+
+    }
+
+    setLoading(true);
+
+    const res =
+      await callAPI(
+        "getStudentMonthAttendanceEdit",
+        {
+          seat:String(
+            attendanceStudent.seat || ""
+          ).trim(),
+
+          month:String(
+            attendanceMonth || ""
+          ).padStart(2,"0"),
+
+          year:String(
+            attendanceYear ||
+            new Date().getFullYear()
+          )
+        }
+      );
+
+    console.log(
+      "MONTH ATTENDANCE RESPONSE:",
+      res
+    );
+
+    if(res && res.success){
+
+      setAttendanceRecords(
+        Array.isArray(res.records)
+          ? res.records
+          : []
+      );
+
+      showMessage(
+        "تم تحميل غياب الطالبة",
+        "success"
+      );
+
+    }else{
+
+      setAttendanceRecords([]);
+
+      showMessage(
+        res && res.error
+          ? res.error
+          : "فشل تحميل غياب الطالبة",
+        "error"
+      );
+
+    }
+
+    setLoading(false);
+
+  }catch(error){
+
+    console.log(
+      "LOAD MONTH ATTENDANCE ERROR:",
+      error
+    );
+
+    setLoading(false);
+
+    showMessage(
+      error && error.message
+        ? error.message
+        : "خطأ في تحميل غياب الطالبة",
+      "error"
+    );
+
+  }
+
+}
+
+  function changeAttendanceStatus(index,value){
+
+    const arr = [...attendanceRecords];
+
+    arr[index] = {
+      ...arr[index],
+      status:value
+    };
+
+    setAttendanceRecords(arr);
+
+  }
+
+  async function saveAttendanceRecords(){
+
+    try{
+
+      if(attendanceRecords.length === 0){
+        showMessage("لا توجد بيانات للحفظ","warning");
+        return;
+      }
+
+      setLoading(true);
+
+      const res =
+        await callAPI("updateStudentMonthAttendance",{
+          records:attendanceRecords
+        });
+
+      if(res && res.success){
+
+        showMessage("تم حفظ تعديلات الغياب","success");
+        await loadStudentMonthAttendance();
+
+      }else{
+
+        showMessage(
+          res && res.error
+            ? res.error
+            : "فشل حفظ التعديلات",
+          "error"
+        );
+
+      }
+
+      setLoading(false);
+
+    }catch(error){
+
+      console.log(error);
+      setLoading(false);
+      showMessage("خطأ أثناء حفظ التعديلات","error");
+
+    }
+
+  }
+
   const filteredStudents =
     students.filter((s)=>{
       return (
@@ -339,7 +512,7 @@ function Students(){
     {
       field:"actions",
       headerName:"إجراءات",
-      width:180,
+      width:300,
       sortable:false,
       filterable:false,
       renderCell:(params)=>(
@@ -358,6 +531,18 @@ function Students(){
           <Button
             size="small"
             variant="contained"
+            color="info"
+            style={{
+              marginLeft:"6px"
+            }}
+            onClick={()=>openAttendance(params.row)}
+          >
+            غياب الشهر
+          </Button>
+
+          <Button
+            size="small"
+            variant="contained"
             color="error"
             onClick={()=>removeStudent(params.row)}
           >
@@ -367,6 +552,18 @@ function Students(){
       )
     }
 
+  ];
+
+  const months = [
+    { value:"09", label:"سبتمبر" },
+    { value:"10", label:"أكتوبر" },
+    { value:"11", label:"نوفمبر" },
+    { value:"12", label:"ديسمبر" },
+    { value:"01", label:"يناير" },
+    { value:"02", label:"فبراير" },
+    { value:"03", label:"مارس" },
+    { value:"04", label:"أبريل" },
+    { value:"05", label:"مايو" }
   ];
 
   return(
@@ -579,6 +776,202 @@ function Students(){
         </div>
 
       </Paper>
+
+      <Dialog
+        open={attendanceOpen}
+        onClose={()=>setAttendanceOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          تعديل غياب الطالبة شهريًا
+        </DialogTitle>
+
+        <DialogContent>
+
+          {attendanceStudent && (
+            <Paper
+              elevation={2}
+              style={{
+                padding:"14px",
+                marginBottom:"16px",
+                borderRadius:"14px",
+                background:"#f8fafc"
+              }}
+            >
+              <Typography fontWeight="bold">
+                الطالبة: {attendanceStudent.name}
+              </Typography>
+
+              <Typography>
+                رقم الجلوس: {attendanceStudent.seat} - الفصل: {attendanceStudent.className}
+              </Typography>
+            </Paper>
+          )}
+
+          <Grid container spacing={2} style={{marginBottom:"16px"}}>
+
+            <Grid item xs={12} md={4}>
+              <LabelBox title="الشهر">
+                <FormControl fullWidth>
+                  <Select
+                    value={attendanceMonth}
+                    onChange={(e)=>setAttendanceMonth(e.target.value)}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      اختر الشهر
+                    </MenuItem>
+
+                    {months.map((m)=>(
+                      <MenuItem key={m.value} value={m.value}>
+                        {m.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </LabelBox>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <LabelBox title="السنة">
+                <TextField
+                  fullWidth
+                  type="number"
+                  value={attendanceYear}
+                  onChange={(e)=>setAttendanceYear(e.target.value)}
+                />
+              </LabelBox>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Typography
+                variant="subtitle1"
+                style={{
+                  fontWeight:"bold",
+                  marginBottom:"6px",
+                  color:"#1e293b"
+                }}
+              >
+                عرض
+              </Typography>
+
+              <Button
+                fullWidth
+                variant="contained"
+                style={{
+                  height:"56px",
+                  borderRadius:"12px",
+                  fontWeight:"bold"
+                }}
+                onClick={loadStudentMonthAttendance}
+                disabled={loading}
+              >
+                عرض غياب الشهر
+              </Button>
+            </Grid>
+
+          </Grid>
+
+          {attendanceRecords.length === 0 ? (
+
+            <Alert severity="info">
+              اختر الشهر ثم اضغط عرض غياب الشهر
+            </Alert>
+
+          ) : (
+
+            <Grid container spacing={2}>
+
+              {attendanceRecords.map((rec,index)=>(
+
+                <Grid item xs={12} md={4} key={index}>
+
+                  <Paper
+                    elevation={3}
+                    style={{
+                      padding:"14px",
+                      borderRadius:"16px",
+                      background:
+                        rec.status === "غ"
+                          ? "#ffebee"
+                          : rec.status === "ح"
+                            ? "#e8f5e9"
+                            : rec.status === "م"
+                              ? "#fff3e0"
+                              : "#f8fafc"
+                    }}
+                  >
+
+                    <Typography
+                      fontWeight="bold"
+                      style={{
+                        marginBottom:"8px"
+                      }}
+                    >
+                      {rec.date}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      style={{
+                        marginBottom:"10px"
+                      }}
+                    >
+                      {rec.sessionName || "-"}
+                    </Typography>
+
+                    <FormControl fullWidth>
+                      <Select
+                        value={rec.status || ""}
+                        onChange={(e)=>changeAttendanceStatus(index,e.target.value)}
+                        displayEmpty
+                      >
+                        <MenuItem value="">
+                          فارغ
+                        </MenuItem>
+
+                        <MenuItem value="ح">
+                          حاضر
+                        </MenuItem>
+
+                        <MenuItem value="غ">
+                          غائب
+                        </MenuItem>
+
+                        <MenuItem value="م">
+                          مرضي
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+
+                  </Paper>
+
+                </Grid>
+
+              ))}
+
+            </Grid>
+
+          )}
+
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={()=>setAttendanceOpen(false)}>
+            إغلاق
+          </Button>
+
+          <Button
+            variant="contained"
+            color="success"
+            onClick={saveAttendanceRecords}
+            disabled={attendanceRecords.length === 0 || loading}
+          >
+            حفظ التعديلات
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={open}
