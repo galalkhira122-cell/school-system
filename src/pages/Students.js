@@ -429,9 +429,19 @@ function Students(){
       setLoading(true);
 
       const res =
-        await callAPI("updateStudentMonthAttendance",{
-          records:attendanceRecords
-        });
+  await callAPI("updateStudentMonthAttendance",{
+    userName:
+      JSON.parse(localStorage.getItem("schoolUser") || "{}").username || "غير معروف",
+
+    studentName:
+      attendanceStudent ? attendanceStudent.name : "",
+
+    records:
+      attendanceRecords.map(r=>({
+        ...r,
+        seat:attendanceStudent ? attendanceStudent.seat : ""
+      }))
+  });
 
       if(res && res.success){
 

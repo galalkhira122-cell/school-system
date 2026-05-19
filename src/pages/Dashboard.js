@@ -52,7 +52,7 @@ function Dashboard(){
       setInterval(()=>{
         load();
         updateClock();
-      },10000);
+      },30000);
 
     return ()=>clearInterval(timer);
 

@@ -48,7 +48,8 @@ import Monitor from "./pages/Monitor";
 import Login from "./pages/Login";
 
 import { callAPI } from "./api";
-
+import HistoryIcon from "@mui/icons-material/History";
+import AuditLog from "./pages/AuditLog";
 const drawerWidth = 250;
 
 function Layout({ user, logout, settings }){
@@ -142,6 +143,12 @@ function Layout({ user, logout, settings }){
       path:"/backup",
       icon:<BackupIcon />
     },
+{
+  key:"audit-log",
+  title:"سجل التعديلات",
+  path:"/audit-log",
+  icon:<HistoryIcon />
+},
     {
       key:"settings",
       title:"الإعدادات",
@@ -418,6 +425,14 @@ function Layout({ user, logout, settings }){
                 : <Dashboard />
             }
           />
+<Route
+  path="/audit-log"
+  element={
+    canAccess("audit-log")
+      ? <AuditLog />
+      : <Dashboard />
+  }
+/>
 
         </Routes>
       </Box>

@@ -78,11 +78,13 @@ function Attendance({ user }){
   const [whatsappOpen,setWhatsappOpen] = useState(false);
   const [whatsappList,setWhatsappList] = useState([]);
 
+  const [editOpen,setEditOpen] = useState(false);
+  const [editStudents,setEditStudents] = useState([]);
+  const [editLoading,setEditLoading] = useState(false);
+
   useEffect(()=>{
     loadData();
   },[]);
-
-  
 
   useEffect(()=>{
     updateClock();
@@ -153,29 +155,50 @@ function Attendance({ user }){
 
       setLoading(true);
 
-      const [cls,t,s,active,phonesData] =
-        await Promise.all([
-          callAPI("getClasses"),
-          callAPI("getTeachers"),
-          callAPI("getSchedule"),
-          callAPI("getActiveSession"),
-          callAPI("getParentPhones")
-        ]);
+      const res =
+        await callAPI("getAttendanceInitData");
 
-      setClasses(Array.isArray(cls) ? cls : []);
-      setTeachers(Array.isArray(t) ? t : []);
-      setSessions(Array.isArray(s) ? s : []);
+      if(res && res.success){
 
-      if(phonesData && phonesData.success){
-        setParentPhones(phonesData.phones || {});
+        setClasses(
+          Array.isArray(res.classes)
+            ? res.classes
+            : []
+        );
+
+        setTeachers(
+          Array.isArray(res.teachers)
+            ? res.teachers
+            : []
+        );
+
+        setSessions(
+          Array.isArray(res.schedule)
+            ? res.schedule
+            : []
+        );
+
+        if(res.parentPhones && res.parentPhones.success){
+          setParentPhones(res.parentPhones.phones || {});
+        }else{
+          setParentPhones({});
+        }
+
+        if(res.activeSession && res.activeSession.success){
+          setActiveSession(res.activeSession.session);
+        }else{
+          setActiveSession(null);
+        }
+
       }else{
-        setParentPhones({});
-      }
 
-      if(active && active.success){
-        setActiveSession(active.session);
-      }else{
-        setActiveSession(null);
+        showMessage(
+          res && res.error
+            ? res.error
+            : "فشل تحميل البيانات",
+          "error"
+        );
+
       }
 
       setLoading(false);
@@ -282,14 +305,14 @@ function Attendance({ user }){
 
       if(!teacher){
 
-  showMessage(
-    "اختر المعلم",
-    "warning"
-  );
+        showMessage(
+          "اختر المعلم",
+          "warning"
+        );
 
-  return;
+        return;
 
-}
+      }
 
       const selectedSession =
         manualSession
@@ -450,6 +473,195 @@ function Attendance({ user }){
     );
 
     showMessage("تم فتح رسالة WhatsApp للطالبة","success");
+
+  }
+
+  async function openAdminEdit(){
+
+    try{
+
+      if(!selectedClass){
+
+        showMessage(
+          "اختر الفصل أولًا",
+          "warning"
+        );
+
+        return;
+
+      }
+
+      setEditLoading(true);
+
+      const res =
+        await callAPI(
+          "getClassTodaySessionAttendanceEdit",
+          {
+            className:selectedClass
+          }
+        );
+
+      setEditLoading(false);
+
+      if(res && res.success){
+
+        setEditStudents(
+          Array.isArray(res.students)
+            ? res.students
+            : []
+        );
+
+        setEditOpen(true);
+
+      }else{
+
+        showMessage(
+          res && res.error
+            ? res.error
+            : "فشل تحميل بيانات التعديل",
+          "error"
+        );
+
+      }
+
+    }catch(error){
+
+      console.log(error);
+
+      setEditLoading(false);
+
+      showMessage(
+        "خطأ في تحميل بيانات التعديل",
+        "error"
+      );
+
+    }
+
+  }
+
+  function updateEditStatus(
+    studentIndex,
+    sessionIndex,
+    value
+  ){
+
+    const arr =
+      editStudents.map((student,index)=>{
+
+        if(index !== studentIndex){
+          return student;
+        }
+
+        return {
+          ...student,
+          sessions:student.sessions.map((session,sIndex)=>{
+
+            if(sIndex !== sessionIndex){
+              return session;
+            }
+
+            return {
+              ...session,
+              status:value
+            };
+
+          })
+        };
+
+      });
+
+    setEditStudents(arr);
+
+  }
+
+  async function saveAdminEdit(){
+
+    try{
+
+      if(editStudents.length === 0){
+
+        showMessage(
+          "لا توجد بيانات للحفظ",
+          "warning"
+        );
+
+        return;
+
+      }
+
+      const today =
+        new Date().toISOString().slice(0,10);
+
+      const records = [];
+
+      editStudents.forEach((student)=>{
+
+        student.sessions.forEach((s)=>{
+
+          records.push({
+            rowIndex:s.rowIndex,
+            colIndex:s.colIndex,
+            status:s.status,
+            seat:student.seat,
+            studentName:student.name,
+            sessionName:s.sessionName,
+            date:today
+          });
+
+        });
+
+      });
+
+      setEditLoading(true);
+
+      const res =
+        await callAPI(
+          "updateClassSessionAttendanceEdit",
+          {
+            userName:user && user.username
+              ? user.username
+              : "Admin",
+            records:records
+          }
+        );
+
+      setEditLoading(false);
+
+      if(res && res.success){
+
+        showMessage(
+          res.message || "تم حفظ تعديلات الغياب",
+          "success"
+        );
+
+        setEditOpen(false);
+
+        await loadStudents();
+        loadTodaySummary();
+
+      }else{
+
+        showMessage(
+          res && res.error
+            ? res.error
+            : "فشل حفظ التعديلات",
+          "error"
+        );
+
+      }
+
+    }catch(error){
+
+      console.log(error);
+
+      setEditLoading(false);
+
+      showMessage(
+        "خطأ أثناء حفظ التعديلات",
+        "error"
+      );
+
+    }
 
   }
 
@@ -750,156 +962,156 @@ function Attendance({ user }){
       </Typography>
 
       <Paper
-  elevation={6}
-  style={{
-    padding:"0",
-    marginBottom:"20px",
-    borderRadius:"22px",
-    overflow:"hidden",
-    background:"linear-gradient(90deg,#020617,#0f172a,#1e293b)",
-    color:"#fff",
-    boxShadow:"0 10px 25px rgba(0,0,0,0.25)"
-  }}
->
-  <Grid container>
-
-    <Grid
-      item
-      xs={12}
-      md={4}
-      style={{
-        padding:"16px 22px",
-        background:"linear-gradient(135deg,#1e293b,#334155)",
-        display:"flex",
-        alignItems:"center",
-        justifyContent:"center",
-        zIndex:20
-      }}
-    >
-      <Typography
-        variant="h6"
+        elevation={6}
         style={{
-          fontWeight:"bold",
-          letterSpacing:"0.5px"
-        }}
-      >
-        🕒 {nowText}
-      </Typography>
-    </Grid>
-
-    <Grid
-      item
-      xs={12}
-      md={8}
-      style={{
-        display:"flex",
-        alignItems:"center",
-        background:"#020617",
-        position:"relative",
-        overflow:"hidden"
-      }}
-    >
-
-      <div
-        style={{
-          background:"linear-gradient(135deg,#dc2626,#991b1b)",
-          padding:"17px 22px",
-          fontWeight:"bold",
-          whiteSpace:"nowrap",
-          zIndex:20,
-          boxShadow:"12px 0 25px rgba(0,0,0,0.55)",
-          fontSize:"17px"
-        }}
-      >
-        🚨 أخبار الغياب
-      </div>
-
-      <div
-        style={{
-          flex:1,
+          padding:"0",
+          marginBottom:"20px",
+          borderRadius:"22px",
           overflow:"hidden",
-          height:"62px",
-          display:"flex",
-          alignItems:"center",
-          position:"relative"
+          background:"linear-gradient(90deg,#020617,#0f172a,#1e293b)",
+          color:"#fff",
+          boxShadow:"0 10px 25px rgba(0,0,0,0.25)"
         }}
       >
+        <Grid container>
 
-        <div
-          style={{
-            display:"inline-flex",
-            gap:"55px",
-            alignItems:"center",
-            whiteSpace:"nowrap",
-            paddingLeft:"30px",
-            animation:"absenceScroll 14s linear infinite"
-          }}
-        >
-
-          {todaySummary.length === 0 ? (
-
-            <span
+          <Grid
+            item
+            xs={12}
+            md={4}
+            style={{
+              padding:"16px 22px",
+              background:"linear-gradient(135deg,#1e293b,#334155)",
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              zIndex:20
+            }}
+          >
+            <Typography
+              variant="h6"
               style={{
-                background:"linear-gradient(135deg,#16a34a,#15803d)",
-                padding:"9px 35px",
-                borderRadius:"999px",
                 fontWeight:"bold",
-                fontSize:"17px",
-                boxShadow:"0 4px 12px rgba(22,163,74,0.4)"
+                letterSpacing:"0.5px"
               }}
             >
-              ✅ لا يوجد غياب مسجل لليوم
-            </span>
+              🕒 {nowText}
+            </Typography>
+          </Grid>
 
-          ) : (
-            <>
-              {[...todaySummary, ...todaySummary, ...todaySummary, ...todaySummary].map((item,index)=>(
-                <span
-                  key={index}
-                  style={{
-                    background:[
-                      "linear-gradient(135deg,#dc2626,#991b1b)",
-                      "linear-gradient(135deg,#ea580c,#c2410c)",
-                      "linear-gradient(135deg,#7c3aed,#5b21b6)",
-                      "linear-gradient(135deg,#2563eb,#1d4ed8)",
-                      "linear-gradient(135deg,#0891b2,#0e7490)",
-                      "linear-gradient(135deg,#be123c,#9f1239)"
-                    ][index % 6],
-                    padding:"9px 34px",
-                    borderRadius:"999px",
-                    fontWeight:"bold",
-                    fontSize:"17px",
-                    boxShadow:"0 5px 15px rgba(0,0,0,0.35)"
-                  }}
-                >
-                  🏫 {item.className} — {item.count} غياب
-                </span>
-              ))}
-            </>
-          )}
+          <Grid
+            item
+            xs={12}
+            md={8}
+            style={{
+              display:"flex",
+              alignItems:"center",
+              background:"#020617",
+              position:"relative",
+              overflow:"hidden"
+            }}
+          >
 
-        </div>
+            <div
+              style={{
+                background:"linear-gradient(135deg,#dc2626,#991b1b)",
+                padding:"17px 22px",
+                fontWeight:"bold",
+                whiteSpace:"nowrap",
+                zIndex:20,
+                boxShadow:"12px 0 25px rgba(0,0,0,0.55)",
+                fontSize:"17px"
+              }}
+            >
+              🚨 أخبار الغياب
+            </div>
 
-      </div>
+            <div
+              style={{
+                flex:1,
+                overflow:"hidden",
+                height:"62px",
+                display:"flex",
+                alignItems:"center",
+                position:"relative"
+              }}
+            >
 
-    </Grid>
+              <div
+                style={{
+                  display:"inline-flex",
+                  gap:"55px",
+                  alignItems:"center",
+                  whiteSpace:"nowrap",
+                  paddingLeft:"30px",
+                  animation:"absenceScroll 14s linear infinite"
+                }}
+              >
 
-  </Grid>
+                {todaySummary.length === 0 ? (
 
-  <style>
-    {`
-      @keyframes absenceScroll {
-        0% {
-          transform: translateX(0);
-        }
+                  <span
+                    style={{
+                      background:"linear-gradient(135deg,#16a34a,#15803d)",
+                      padding:"9px 35px",
+                      borderRadius:"999px",
+                      fontWeight:"bold",
+                      fontSize:"17px",
+                      boxShadow:"0 4px 12px rgba(22,163,74,0.4)"
+                    }}
+                  >
+                    ✅ لا يوجد غياب مسجل لليوم
+                  </span>
 
-        100% {
-          transform: translateX(-50%);
-        }
-      }
-    `}
-  </style>
-</Paper>
+                ) : (
+                  <>
+                    {[...todaySummary, ...todaySummary, ...todaySummary, ...todaySummary].map((item,index)=>(
+                      <span
+                        key={index}
+                        style={{
+                          background:[
+                            "linear-gradient(135deg,#dc2626,#991b1b)",
+                            "linear-gradient(135deg,#ea580c,#c2410c)",
+                            "linear-gradient(135deg,#7c3aed,#5b21b6)",
+                            "linear-gradient(135deg,#2563eb,#1d4ed8)",
+                            "linear-gradient(135deg,#0891b2,#0e7490)",
+                            "linear-gradient(135deg,#be123c,#9f1239)"
+                          ][index % 6],
+                          padding:"9px 34px",
+                          borderRadius:"999px",
+                          fontWeight:"bold",
+                          fontSize:"17px",
+                          boxShadow:"0 5px 15px rgba(0,0,0,0.35)"
+                        }}
+                      >
+                        🏫 {item.className} — {item.count} غياب
+                      </span>
+                    ))}
+                  </>
+                )}
+
+              </div>
+
+            </div>
+
+          </Grid>
+
+        </Grid>
+
+        <style>
+          {`
+            @keyframes absenceScroll {
+              0% {
+                transform: translateX(0);
+              }
+
+              100% {
+                transform: translateX(-50%);
+              }
+            }
+          `}
+        </style>
+      </Paper>
 
       <Grid container spacing={2} style={{marginBottom:"20px"}}>
 
@@ -997,12 +1209,10 @@ function Attendance({ user }){
             <LabelBox title="المعلم">
               <FormControl fullWidth>
                 <Select
-  value={teacher}
-  onChange={(e)=>setTeacher(e.target.value)}
+                  value={teacher}
+                  onChange={(e)=>setTeacher(e.target.value)}
                 >
                   <MenuItem value="">اختر المعلم</MenuItem>
-
-                  
 
                   {teachers.map((t,index)=>(
                     <MenuItem key={index} value={t}>
@@ -1193,6 +1403,26 @@ function Attendance({ user }){
         إرسال WhatsApp للغائبين
       </Button>
 
+      {user && user.role === "Admin" && (
+
+        <Button
+          variant="contained"
+          color="warning"
+          size="large"
+          style={{
+            borderRadius:"12px",
+            fontWeight:"bold",
+            padding:"12px 40px",
+            marginRight:"12px"
+          }}
+          onClick={openAdminEdit}
+          disabled={editLoading}
+        >
+          تعديل غياب اليوم
+        </Button>
+
+      )}
+
       <Dialog
         open={whatsappOpen}
         onClose={()=>setWhatsappOpen(false)}
@@ -1271,6 +1501,180 @@ function Attendance({ user }){
             إغلاق
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={editOpen}
+        onClose={()=>setEditOpen(false)}
+        maxWidth="xl"
+        fullWidth
+      >
+
+        <DialogTitle>
+          تعديل غياب اليوم - {selectedClass}
+        </DialogTitle>
+
+        <DialogContent>
+
+          {editLoading && (
+            <Alert
+              severity="info"
+              style={{
+                marginBottom:"15px"
+              }}
+            >
+              جاري تحميل / حفظ البيانات...
+            </Alert>
+          )}
+
+          {editStudents.length === 0 ? (
+
+            <Alert severity="warning">
+              لا توجد بيانات غياب لهذا الفصل اليوم أو لم يتم إنشاء أعمدة Sessions في Sheet1.
+            </Alert>
+
+          ) : (
+
+            editStudents.map((student,studentIndex)=>(
+
+              <Paper
+                key={studentIndex}
+                elevation={3}
+                style={{
+                  padding:"15px",
+                  marginBottom:"14px",
+                  borderRadius:"16px"
+                }}
+              >
+
+                <Typography
+                  variant="h6"
+                  style={{
+                    fontWeight:"bold",
+                    marginBottom:"12px"
+                  }}
+                >
+                  {student.name}
+                  {" - "}
+                  {student.seat}
+                </Typography>
+
+                <Grid container spacing={2}>
+
+                  {student.sessions && student.sessions.length > 0 ? (
+
+                    student.sessions.map((s,sessionIndex)=>(
+
+                      <Grid
+                        item
+                        xs={12}
+                        md={3}
+                        key={sessionIndex}
+                      >
+
+                        <Paper
+                          style={{
+                            padding:"12px",
+                            borderRadius:"12px",
+                            background:
+                              s.status === "غ"
+                                ? "#ffebee"
+                                : s.status === "ح"
+                                  ? "#e8f5e9"
+                                  : s.status === "مرضي"
+                                    ? "#fff3e0"
+                                    : "#f8fafc"
+                          }}
+                        >
+
+                          <Typography
+                            style={{
+                              fontWeight:"bold",
+                              marginBottom:"10px"
+                            }}
+                          >
+                            {s.sessionName || "Session"}
+                          </Typography>
+
+                          <FormControl fullWidth>
+
+                            <Select
+                              value={s.status || ""}
+                              onChange={(e)=>
+                                updateEditStatus(
+                                  studentIndex,
+                                  sessionIndex,
+                                  e.target.value
+                                )
+                              }
+                              displayEmpty
+                            >
+
+                              <MenuItem value="">
+                                فارغ
+                              </MenuItem>
+
+                              <MenuItem value="ح">
+                                حاضر
+                              </MenuItem>
+
+                              <MenuItem value="غ">
+                                غائب
+                              </MenuItem>
+
+                              <MenuItem value="مرضي">
+                                مرضي
+                              </MenuItem>
+
+                            </Select>
+
+                          </FormControl>
+
+                        </Paper>
+
+                      </Grid>
+
+                    ))
+
+                  ) : (
+
+                    <Grid item xs={12}>
+                      <Alert severity="info">
+                        لا توجد Sessions مسجلة لهذه الطالبة اليوم.
+                      </Alert>
+                    </Grid>
+
+                  )}
+
+                </Grid>
+
+              </Paper>
+
+            ))
+
+          )}
+
+        </DialogContent>
+
+        <DialogActions>
+
+          <Button
+            onClick={()=>setEditOpen(false)}
+          >
+            إلغاء
+          </Button>
+
+          <Button
+            variant="contained"
+            color="success"
+            onClick={saveAdminEdit}
+            disabled={editLoading || editStudents.length === 0}
+          >
+            حفظ التعديلات
+          </Button>
+
+        </DialogActions>
+
       </Dialog>
 
       <Snackbar

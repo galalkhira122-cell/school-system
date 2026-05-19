@@ -22,6 +22,7 @@ function Login({ onLogin }){
 
     if(!username || !password){
       setMsg("اكتب اسم المستخدم وكلمة المرور");
+
       return;
     }
 
@@ -45,7 +46,13 @@ function Login({ onLogin }){
     }
 
   }
+function handleEnter(e){
 
+  if(e.key === "Enter"){
+    login();
+  }
+
+}
   return(
 
     <Container
@@ -79,6 +86,7 @@ function Login({ onLogin }){
           label="اسم المستخدم"
           value={username}
           onChange={(e)=>setUsername(e.target.value)}
+                    onKeyDown={handleEnter}
           style={{marginTop:"20px"}}
         />
 
@@ -88,6 +96,7 @@ function Login({ onLogin }){
           label="كلمة المرور"
           value={password}
           onChange={(e)=>setPassword(e.target.value)}
+                    onKeyDown={handleEnter}
           style={{marginTop:"20px"}}
         />
 
