@@ -897,7 +897,7 @@ function Students(){
                           ? "#ffebee"
                           : rec.status === "ح"
                             ? "#e8f5e9"
-                            : rec.status === "م"
+                            : rec.status === "مرضي"
                               ? "#fff3e0"
                               : "#f8fafc"
                     }}
