@@ -939,7 +939,7 @@ function Students(){
                           غائب
                         </MenuItem>
 
-                        <MenuItem value="م">
+                        <MenuItem value="مرضي">
                           مرضي
                         </MenuItem>
                       </Select>
