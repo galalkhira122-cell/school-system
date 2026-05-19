@@ -93,10 +93,14 @@ function Attendance({ user }){
   },[]);
 
   useEffect(()=>{
-    loadTodaySummary();
-    const timer = setInterval(loadTodaySummary,5000);
-    return ()=>clearInterval(timer);
-  },[]);
+  loadTodaySummary();
+
+  const timer =
+    setInterval(loadTodaySummary,30000);
+
+  return ()=>clearInterval(timer);
+
+},[]);
 
   function showMessage(text,type){
     setMsg(text);
@@ -1065,7 +1069,9 @@ function Attendance({ user }){
 
                 ) : (
                   <>
-                    {[...todaySummary, ...todaySummary, ...todaySummary, ...todaySummary].map((item,index)=>(
+                    {todaySummary
+                                     .filter(item => Number(item.count || 0) > 0)
+                                     .map((item,index)=>(
                       <span
                         key={index}
                         style={{
