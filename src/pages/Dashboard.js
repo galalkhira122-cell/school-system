@@ -519,9 +519,77 @@ function Dashboard(){
               </PieChart>
             </ResponsiveContainer>
           </Paper>
-        </Grid>
+        <Grid container spacing={2}>
 
-      </Grid>
+  {registeredClasses.map((c,index)=>(
+
+    <Grid item xs={12} md={3} key={index}>
+
+      <Paper
+        elevation={4}
+        style={{
+          padding:"14px",
+          borderRadius:"16px",
+          background:"linear-gradient(135deg,#16a34a,#15803d)",
+          color:"#fff",
+          textAlign:"center"
+        }}
+      >
+
+        <Typography
+          variant="h6"
+          style={{
+            fontWeight:"bold"
+          }}
+        >
+          {c}
+        </Typography>
+
+        <Typography>
+          تم تسجيل الغياب
+        </Typography>
+
+      </Paper>
+
+    </Grid>
+
+  ))}
+
+  {notRegisteredClasses.map((c,index)=>(
+
+    <Grid item xs={12} md={3} key={index}>
+
+      <Paper
+        elevation={4}
+        style={{
+          padding:"14px",
+          borderRadius:"16px",
+          background:"linear-gradient(135deg,#dc2626,#991b1b)",
+          color:"#fff",
+          textAlign:"center"
+        }}
+      >
+
+        <Typography
+          variant="h6"
+          style={{
+            fontWeight:"bold"
+          }}
+        >
+          {c}
+        </Typography>
+
+        <Typography>
+          لم يسجل الغياب
+        </Typography>
+
+      </Paper>
+
+    </Grid>
+
+  ))}
+
+</Grid>
 
     </Container>
 
