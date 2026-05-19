@@ -438,7 +438,7 @@ function Dashboard(){
                   <span
                     key={index}
                     style={{
-                      background:"#64748b",
+                      background:"#dc2626",
                       color:"#fff",
                       padding:"8px 16px",
                       borderRadius:"20px",
@@ -482,94 +482,99 @@ function Dashboard(){
                 <Bar dataKey="absence" name="عدد الغياب" />
               </BarChart>
             </ResponsiveContainer>
+
           </Paper>
         </Grid>
 
         <Grid item xs={12} md={4}>
-  <Paper
-    elevation={4}
-    style={{
-      padding:"20px",
-      borderRadius:"18px",
-      minHeight:"360px"
-    }}
-  >
+          <Paper
+            elevation={4}
+            style={{
+              padding:"20px",
+              borderRadius:"18px",
+              minHeight:"360px"
+            }}
+          >
 
-    <Typography
-      variant="h6"
-      gutterBottom
-      style={{fontWeight:"bold"}}
-    >
-      حالة تسجيل الغياب
-    </Typography>
+            <Typography
+              variant="h6"
+              gutterBottom
+              style={{fontWeight:"bold"}}
+            >
+              حالة تسجيل الغياب
+            </Typography>
 
-    <ResponsiveContainer width="100%" height={180}>
-      <PieChart>
-        <Pie
-          data={pieData}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={75}
-          label
-        >
-          <Cell fill="#16a34a" />
-          <Cell fill="#dc2626" />
-        </Pie>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
 
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={75}
+                  label
+                >
+                  <Cell fill="#16a34a" />
+                  <Cell fill="#dc2626" />
+                </Pie>
 
-    <Box
-      style={{
-        display:"flex",
-        flexWrap:"wrap",
-        gap:"10px",
-        marginTop:"15px"
-      }}
-    >
+                <Tooltip />
+                <Legend />
 
-      {data.registeredClasses.map((c,index)=>(
+              </PieChart>
+            </ResponsiveContainer>
 
-        <Paper
-          key={index}
-          elevation={3}
-          style={{
-            padding:"10px 16px",
-            borderRadius:"14px",
-            background:"linear-gradient(135deg,#16a34a,#15803d)",
-            color:"#fff",
-            fontWeight:"bold"
-          }}
-        >
-          {c} ✓
-        </Paper>
+            <Box
+              style={{
+                display:"flex",
+                flexWrap:"wrap",
+                gap:"10px",
+                marginTop:"15px"
+              }}
+            >
 
-      ))}
+              {data.registeredClasses.map((c,index)=>(
 
-      {data.notRegistered.map((c,index)=>(
+                <Paper
+                  key={index}
+                  elevation={3}
+                  style={{
+                    padding:"10px 16px",
+                    borderRadius:"14px",
+                    background:"linear-gradient(135deg,#16a34a,#15803d)",
+                    color:"#fff",
+                    fontWeight:"bold"
+                  }}
+                >
+                  {c} ✓
+                </Paper>
 
-        <Paper
-          key={index}
-          elevation={3}
-          style={{
-            padding:"10px 16px",
-            borderRadius:"14px",
-            background:"linear-gradient(135deg,#dc2626,#991b1b)",
-            color:"#fff",
-            fontWeight:"bold"
-          }}
-        >
-          {c} ✕
-        </Paper>
+              ))}
 
-      ))}
+              {data.notRegistered.map((c,index)=>(
 
-    </Box>
+                <Paper
+                  key={index}
+                  elevation={3}
+                  style={{
+                    padding:"10px 16px",
+                    borderRadius:"14px",
+                    background:"linear-gradient(135deg,#dc2626,#991b1b)",
+                    color:"#fff",
+                    fontWeight:"bold"
+                  }}
+                >
+                  {c} ✕
+                </Paper>
 
-  </Paper>
-</Grid>
+              ))}
+
+            </Box>
+
+          </Paper>
+        </Grid>
+
+      </Grid>
 
     </Container>
 
