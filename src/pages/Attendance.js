@@ -82,11 +82,7 @@ function Attendance({ user }){
     loadData();
   },[]);
 
-  useEffect(()=>{
-    if(user && user.role === "Teacher"){
-      setTeacher(user.username);
-    }
-  },[user]);
+  
 
   useEffect(()=>{
     updateClock();
@@ -285,9 +281,15 @@ function Attendance({ user }){
       }
 
       if(!teacher){
-        showMessage("اختر المعلم","warning");
-        return;
-      }
+
+  showMessage(
+    "اختر المعلم",
+    "warning"
+  );
+
+  return;
+
+}
 
       const selectedSession =
         manualSession
@@ -995,18 +997,12 @@ function Attendance({ user }){
             <LabelBox title="المعلم">
               <FormControl fullWidth>
                 <Select
-                  value={teacher}
-                  onChange={(e)=>setTeacher(e.target.value)}
-                  displayEmpty
-                  disabled={user && user.role === "Teacher"}
+  value={teacher}
+  onChange={(e)=>setTeacher(e.target.value)}
                 >
                   <MenuItem value="">اختر المعلم</MenuItem>
 
-                  {user && user.role === "Teacher" && (
-                    <MenuItem value={user.username}>
-                      {user.username}
-                    </MenuItem>
-                  )}
+                  
 
                   {teachers.map((t,index)=>(
                     <MenuItem key={index} value={t}>
