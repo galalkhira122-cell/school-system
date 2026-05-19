@@ -486,109 +486,89 @@ function Dashboard(){
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Paper
-            elevation={4}
-            style={{
-              padding:"20px",
-              borderRadius:"18px",
-              height:"360px"
-            }}
-          >
-            <Typography
-              variant="h6"
-              gutterBottom
-              style={{fontWeight:"bold"}}
-            >
-              حالة تسجيل الغياب
-            </Typography>
+  <Paper
+    elevation={4}
+    style={{
+      padding:"20px",
+      borderRadius:"18px",
+      minHeight:"360px"
+    }}
+  >
 
-            <ResponsiveContainer width="100%" height="85%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={95}
-                  label
-                >
-                  <Cell />
-                  <Cell />
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        <Grid container spacing={2}>
+    <Typography
+      variant="h6"
+      gutterBottom
+      style={{fontWeight:"bold"}}
+    >
+      حالة تسجيل الغياب
+    </Typography>
 
-  {registeredClasses.map((c,index)=>(
+    <ResponsiveContainer width="100%" height={180}>
+      <PieChart>
+        <Pie
+          data={pieData}
+          dataKey="value"
+          nameKey="name"
+          outerRadius={75}
+          label
+        >
+          <Cell fill="#16a34a" />
+          <Cell fill="#dc2626" />
+        </Pie>
 
-    <Grid item xs={12} md={3} key={index}>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
 
-      <Paper
-        elevation={4}
-        style={{
-          padding:"14px",
-          borderRadius:"16px",
-          background:"linear-gradient(135deg,#16a34a,#15803d)",
-          color:"#fff",
-          textAlign:"center"
-        }}
-      >
+    <Box
+      style={{
+        display:"flex",
+        flexWrap:"wrap",
+        gap:"10px",
+        marginTop:"15px"
+      }}
+    >
 
-        <Typography
-          variant="h6"
+      {data.registeredClasses.map((c,index)=>(
+
+        <Paper
+          key={index}
+          elevation={3}
           style={{
+            padding:"10px 16px",
+            borderRadius:"14px",
+            background:"linear-gradient(135deg,#16a34a,#15803d)",
+            color:"#fff",
             fontWeight:"bold"
           }}
         >
-          {c}
-        </Typography>
+          {c} ✓
+        </Paper>
 
-        <Typography>
-          تم تسجيل الغياب
-        </Typography>
+      ))}
 
-      </Paper>
+      {data.notRegistered.map((c,index)=>(
 
-    </Grid>
-
-  ))}
-
-  {notRegisteredClasses.map((c,index)=>(
-
-    <Grid item xs={12} md={3} key={index}>
-
-      <Paper
-        elevation={4}
-        style={{
-          padding:"14px",
-          borderRadius:"16px",
-          background:"linear-gradient(135deg,#dc2626,#991b1b)",
-          color:"#fff",
-          textAlign:"center"
-        }}
-      >
-
-        <Typography
-          variant="h6"
+        <Paper
+          key={index}
+          elevation={3}
           style={{
+            padding:"10px 16px",
+            borderRadius:"14px",
+            background:"linear-gradient(135deg,#dc2626,#991b1b)",
+            color:"#fff",
             fontWeight:"bold"
           }}
         >
-          {c}
-        </Typography>
+          {c} ✕
+        </Paper>
 
-        <Typography>
-          لم يسجل الغياب
-        </Typography>
+      ))}
 
-      </Paper>
+    </Box>
 
-    </Grid>
-
-  ))}
-
+  </Paper>
 </Grid>
 
     </Container>
