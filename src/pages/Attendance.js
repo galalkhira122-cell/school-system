@@ -1394,40 +1394,63 @@ function Attendance({ user }){
         طباعة كشف الفصل PDF
       </Button>
 
-      <Button
-        variant="contained"
-        color="secondary"
-        size="large"
-        style={{
-          borderRadius:"12px",
-          fontWeight:"bold",
-          padding:"12px 40px",
-          marginRight:"12px"
-        }}
-        onClick={sendWhatsAppToAbsent}
-      >
-        إرسال WhatsApp للغائبين
-      </Button>
+      {String(user?.role || "").trim().toLowerCase() === "admin" && (
 
-      {user && user.role === "Admin" && (
+  <Button
+    variant="contained"
+    color="secondary"
+    size="large"
+    style={{
+      borderRadius:"12px",
+      fontWeight:"bold",
+      padding:"12px 40px",
+      marginRight:"12px"
+    }}
+    onClick={sendWhatsAppToAbsent}
+  >
+    إرسال WhatsApp للغائبين
+  </Button>
 
-        <Button
-          variant="contained"
-          color="warning"
-          size="large"
-          style={{
-            borderRadius:"12px",
-            fontWeight:"bold",
-            padding:"12px 40px",
-            marginRight:"12px"
-          }}
-          onClick={openAdminEdit}
-          disabled={editLoading}
-        >
-          تعديل غياب اليوم
-        </Button>
+)}
 
-      )}
+     {user && user.role === "Admin" && (
+
+  <Button
+    variant="contained"
+    color="secondary"
+    size="large"
+    style={{
+      borderRadius:"12px",
+      fontWeight:"bold",
+      padding:"12px 40px",
+      marginRight:"12px"
+    }}
+    onClick={sendWhatsAppToAbsent}
+  >
+    إرسال WhatsApp للغائبين
+  </Button>
+
+)}
+
+{String(user?.role || "").trim().toLowerCase() === "admin" && (
+
+  <Button
+    variant="contained"
+    color="warning"
+    size="large"
+    style={{
+      borderRadius:"12px",
+      fontWeight:"bold",
+      padding:"12px 40px",
+      marginRight:"12px"
+    }}
+    onClick={openAdminEdit}
+    disabled={editLoading}
+  >
+    تعديل غياب اليوم
+  </Button>
+
+)}
 
       <Dialog
         open={whatsappOpen}

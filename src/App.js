@@ -337,13 +337,13 @@ function Layout({ user, logout, settings }){
         <Routes>
 
           <Route
-            path="/"
-            element={
-              canAccess("dashboard")
-                ? <Dashboard />
-                : <Attendance user={user} />
-            }
-          />
+  path="/"
+  element={
+    String(user?.role || "").trim().toLowerCase() === "teacher"
+      ? <Attendance user={user} />
+      : <Dashboard />
+  }
+/>
 
           <Route
             path="/attendance"

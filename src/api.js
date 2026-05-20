@@ -1,5 +1,5 @@
 const URL =
-"https://script.google.com/macros/s/AKfycbyDZxQN_wLF603YuhzcqVnjAC0L_3D-KyV4aP-z5aHd6e67lymWcknVHsG6PojWcG0y/exec";
+"https://script.google.com/macros/s/AKfycbz0kP5uX_GAS46ZsDrYtJLoYupnkbxqkMhqKtQPN4X5XdkiWSNbcUN_b6wSfaYkSzoJ/exec";
 
 export async function callAPI(
   action,
