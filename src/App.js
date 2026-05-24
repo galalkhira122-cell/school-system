@@ -34,6 +34,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import BackupIcon from "@mui/icons-material/Backup";
 import SettingsIcon from "@mui/icons-material/Settings";
 import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import HistoryIcon from "@mui/icons-material/History";
 
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
@@ -46,10 +47,10 @@ import Backup from "./pages/Backup";
 import Settings from "./pages/Settings";
 import Monitor from "./pages/Monitor";
 import Login from "./pages/Login";
+import AuditLog from "./pages/AuditLog";
 
 import { callAPI } from "./api";
-import HistoryIcon from "@mui/icons-material/History";
-import AuditLog from "./pages/AuditLog";
+
 const drawerWidth = 250;
 
 function Layout({ user, logout, settings }){
@@ -143,12 +144,12 @@ function Layout({ user, logout, settings }){
       path:"/backup",
       icon:<BackupIcon />
     },
-{
-  key:"audit-log",
-  title:"سجل التعديلات",
-  path:"/audit-log",
-  icon:<HistoryIcon />
-},
+    {
+      key:"audit-log",
+      title:"سجل التعديلات",
+      path:"/audit-log",
+      icon:<HistoryIcon />
+    },
     {
       key:"settings",
       title:"الإعدادات",
@@ -337,13 +338,13 @@ function Layout({ user, logout, settings }){
         <Routes>
 
           <Route
-  path="/"
-  element={
-    String(user?.role || "").trim().toLowerCase() === "teacher"
-      ? <Attendance user={user} />
-      : <Dashboard />
-  }
-/>
+            path="/"
+            element={
+              String(user?.role || "").trim().toLowerCase() === "teacher"
+                ? <Attendance user={user} />
+                : <Dashboard />
+            }
+          />
 
           <Route
             path="/attendance"
@@ -425,14 +426,15 @@ function Layout({ user, logout, settings }){
                 : <Dashboard />
             }
           />
-<Route
-  path="/audit-log"
-  element={
-    canAccess("audit-log")
-      ? <AuditLog />
-      : <Dashboard />
-  }
-/>
+
+          <Route
+            path="/audit-log"
+            element={
+              canAccess("audit-log")
+                ? <AuditLog />
+                : <Dashboard />
+            }
+          />
 
         </Routes>
       </Box>
@@ -450,7 +452,10 @@ function App(){
 
   const [siteStatus,setSiteStatus] = useState({
     isClosed:false,
-    message:"الموقع مغلق الآن للصيانة"
+    message:"الموقع مغلق الآن للصيانة",
+    isWeekend:false,
+    todayName:"",
+    weekends:[]
   });
 
   useEffect(()=>{
@@ -494,7 +499,10 @@ function App(){
       if(res && res.success){
         setSiteStatus({
           isClosed:res.isClosed || false,
-          message:res.message || "الموقع مغلق الآن للصيانة"
+          message:res.message || "الموقع مغلق الآن للصيانة",
+          isWeekend:res.isWeekend || false,
+          todayName:res.todayName || "",
+          weekends:res.weekends || []
         });
       }
 
@@ -515,6 +523,73 @@ function App(){
 
   if(!user){
     return <Login onLogin={setUser} />;
+  }
+
+  if(
+    siteStatus.isWeekend &&
+    user &&
+    user.role !== "Admin"
+  ){
+
+    return(
+
+      <Box
+        sx={{
+          minHeight:"100vh",
+          display:"flex",
+          alignItems:"center",
+          justifyContent:"center",
+          background:"linear-gradient(135deg,#0f172a,#1e293b)",
+          color:"#fff",
+          textAlign:"center",
+          p:3,
+          direction:"rtl"
+        }}
+      >
+        <Paper
+          elevation={8}
+          sx={{
+            p:5,
+            borderRadius:"24px",
+            maxWidth:"650px"
+          }}
+        >
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            gutterBottom
+            color="#dc2626"
+          >
+            عطلة رسمية
+          </Typography>
+
+          <Typography
+            variant="h6"
+            color="#334155"
+            sx={{mb:3}}
+          >
+            الموقع متوقف اليوم بسبب العطلة الأسبوعية
+          </Typography>
+
+          <Typography
+            variant="h6"
+            sx={{mb:3}}
+          >
+            اليوم: {siteStatus.todayName}
+          </Typography>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={logout}
+          >
+            خروج
+          </Button>
+        </Paper>
+      </Box>
+
+    );
+
   }
 
   if(

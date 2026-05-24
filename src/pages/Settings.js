@@ -52,6 +52,9 @@ function Settings(){
   const [siteClosed,setSiteClosed] =
     useState(false);
 
+  const [weekends,setWeekends] =
+    useState([]);
+
   const [preview,setPreview] =
     useState({
       schoolName:"",
@@ -86,10 +89,11 @@ function Settings(){
 
       setLoading(true);
 
-      const [data,siteData] =
+      const [data,siteData,weekendData] =
         await Promise.all([
           callAPI("getSettings"),
-          callAPI("getSiteStatus")
+          callAPI("getSiteStatus"),
+          callAPI("getWeekendSettings")
         ]);
 
       const loaded = {
@@ -108,6 +112,15 @@ function Settings(){
       setPreview(loaded);
       setTerm(loaded.term);
       setSiteClosed(loaded.siteClosed);
+
+      if(
+        weekendData &&
+        weekendData.success
+      ){
+        setWeekends(
+          weekendData.weekends || []
+        );
+      }
 
       setTimeout(()=>{
 
@@ -179,18 +192,30 @@ function Settings(){
 
       setLoading(true);
 
-      const [res,siteRes] =
+      const [res,siteRes,weekendRes] =
         await Promise.all([
           callAPI("saveSettings",dataToSave),
+
           callAPI("saveSiteStatus",{
             isClosed:siteClosed,
             message:closedMessage
-          })
+          }),
+
+          callAPI(
+            "saveWeekendSettings",
+            {
+              weekends:weekends
+            }
+          )
         ]);
 
       setLoading(false);
 
-      if(res && res.success && siteRes && siteRes.success){
+      if(
+        res && res.success &&
+        siteRes && siteRes.success &&
+        weekendRes && weekendRes.success
+      ){
 
         setPreview({
           ...dataToSave,
@@ -198,7 +223,10 @@ function Settings(){
           closedMessage:closedMessage
         });
 
-        showMessage("تم حفظ الإعدادات وحالة الموقع","success");
+        showMessage(
+          "تم حفظ الإعدادات وحالة الموقع",
+          "success"
+        );
 
       }else{
 
@@ -444,6 +472,79 @@ function Settings(){
           </Grid>
 
         </Grid>
+
+      </Paper>
+
+      <Paper
+        elevation={4}
+        style={{
+          padding:"25px",
+          borderRadius:"18px",
+          marginBottom:"20px"
+        }}
+      >
+
+        <Typography
+          variant="h6"
+          gutterBottom
+          style={{
+            fontWeight:"bold",
+            color:"#0f172a"
+          }}
+        >
+          أيام العطلات الأسبوعية
+        </Typography>
+
+        <FormControl fullWidth>
+
+          <Select
+            multiple
+            value={weekends}
+            onChange={(e)=>
+              setWeekends(e.target.value)
+            }
+          >
+
+            <MenuItem value="Sunday">
+              الأحد
+            </MenuItem>
+
+            <MenuItem value="Monday">
+              الاثنين
+            </MenuItem>
+
+            <MenuItem value="Tuesday">
+              الثلاثاء
+            </MenuItem>
+
+            <MenuItem value="Wednesday">
+              الأربعاء
+            </MenuItem>
+
+            <MenuItem value="Thursday">
+              الخميس
+            </MenuItem>
+
+            <MenuItem value="Friday">
+              الجمعة
+            </MenuItem>
+
+            <MenuItem value="Saturday">
+              السبت
+            </MenuItem>
+
+          </Select>
+
+        </FormControl>
+
+        <Alert
+          severity="info"
+          style={{
+            marginTop:"15px"
+          }}
+        >
+          سيتم غلق الموقع تلقائيًا في أيام العطلات المختارة.
+        </Alert>
 
       </Paper>
 
