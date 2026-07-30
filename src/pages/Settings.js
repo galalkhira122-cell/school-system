@@ -1,6 +1,7 @@
 import React,{ useEffect, useRef, useState } from "react";
 
 import {
+console.log("✅ SETTINGS.JS VERSION 2026-07-30");
   Container,
   Typography,
   Paper,
@@ -40,7 +41,7 @@ function LabelBox({ title, children }){
 }
 
 function Settings(){
-
+alert("SETTINGS PAGE NEW VERSION 2026");
   const schoolNameRef = useRef(null);
   const schoolYearRef = useRef(null);
   const startDateRef = useRef(null);
@@ -192,41 +193,63 @@ function Settings(){
 
       setLoading(true);
 
-      const [res,siteRes,weekendRes] =
-        await Promise.all([
-          callAPI("saveSettings",dataToSave),
+      const [res, siteRes, weekendRes] =
+  await Promise.all([
+    callAPI("saveSettings", dataToSave),
+    callAPI("saveSiteStatus", {
+      isClosed: siteClosed,
+      message: closedMessage
+    }),
+    callAPI("saveWeekendSettings", {
+      weekends: weekends
+    })
+  ]);
 
-          callAPI("saveSiteStatus",{
-            isClosed:siteClosed,
-            message:closedMessage
-          }),
+console.log("saveSettings response:", res);
+console.log("saveSiteStatus response:", siteRes);
+console.log("saveWeekendSettings response:", weekendRes);
 
-          callAPI(
-            "saveWeekendSettings",
-            {
-              weekends:weekends
-            }
-          )
-        ]);
+if(
+  !res ||
+  res.success !== true
+){
 
-      setLoading(false);
+  throw new Error(
+    res?.error ||
+    "فشل حفظ الإعدادات"
+  );
 
-      if(
-        res && res.success &&
-        siteRes && siteRes.success &&
-        weekendRes && weekendRes.success
-      ){
+}
 
-        setPreview({
-          ...dataToSave,
-          siteClosed:siteClosed,
-          closedMessage:closedMessage
-        });
+if(
+  !siteRes ||
+  siteRes.success !== true
+){
 
-        showMessage(
-          "تم حفظ الإعدادات وحالة الموقع",
-          "success"
-        );
+  throw new Error(
+    siteRes?.error ||
+    "فشل حفظ حالة الموقع"
+  );
+
+}
+
+if(
+  !weekendRes ||
+  weekendRes.success !== true
+){
+
+  throw new Error(
+    weekendRes?.error ||
+    "فشل حفظ أيام العطلات"
+  );
+
+}
+
+showMessage(
+  res.message ||
+  "تم حفظ الإعدادات وحالة الموقع",
+  "success"
+);
 
       }else{
 
@@ -241,13 +264,20 @@ function Settings(){
 
     }catch(error){
 
-      console.log(error);
-      setLoading(false);
-      showMessage("خطأ أثناء الحفظ","error");
+  console.error(
+    "خطأ أثناء حفظ الإعدادات:",
+    error
+  );
 
-    }
+  setLoading(false);
 
-  }
+  showMessage(
+    error?.message ||
+    "خطأ أثناء الحفظ",
+    "error"
+  );
+
+}
 
   return(
 
