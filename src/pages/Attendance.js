@@ -77,6 +77,13 @@ function Attendance({ user }){
 
   const [whatsappOpen,setWhatsappOpen] = useState(false);
   const [whatsappList,setWhatsappList] = useState([]);
+  const [allAbsentOpen,setAllAbsentOpen] = useState(false);
+  const [allAbsentRows,setAllAbsentRows] = useState([]);
+  const [allAbsentLoading,setAllAbsentLoading] = useState(false);
+  const [allAbsentSearch,setAllAbsentSearch] = useState("");
+  const [allAbsentClass,setAllAbsentClass] = useState("all");
+  const [allAbsentSession,setAllAbsentSession] = useState("all");
+  const [openedWhatsApp,setOpenedWhatsApp] = useState([]);
 
   const [dateEditOpen,setDateEditOpen] = useState(false);
   const [dateEditDate,setDateEditDate] = useState("");
@@ -411,82 +418,47 @@ function Attendance({ user }){
 
   }
 
-  function sendWhatsAppToAbsent(){
-
-    const absentStudents =
-      students.filter(s =>
-        s.absent ||
-        s.todayStatus === "غائب"
-      );
-
-    if(absentStudents.length === 0){
-      showMessage("لا توجد طالبات غائبات لإرسال رسائل","warning");
-      return;
-    }
-
-    const selectedSession =
-      manualSession
-        ? sessions.find(x => String(x.id) === String(manualSession))
-        : activeSession;
-
-    const list =
-      absentStudents.map((s)=>{
-
-        const seat =
-          String(s.seat || "").trim();
-
-        const rawPhone =
-          parentPhones[seat];
-
-        const phone =
-          formatPhoneForWhatsApp(rawPhone);
-
-        const message =
-          "ولي الأمر المحترم، نحيط علم سيادتكم بغياب الطالبة: " +
-          s.name +
-          "، فصل: " +
-          selectedClass +
-          "، في " +
-          (selectedSession ? selectedSession.name : "Session") +
-          " اليوم. برجاء المتابعة. إدارة المدرسة";
-
-        return {
-          ...s,
-          phone:phone,
-          canSend:Boolean(phone),
-          message:message
-        };
-
-      });
-
-    setWhatsappList(list);
-    setWhatsappOpen(true);
-
+  async function openAllAbsent(){
+    setAllAbsentOpen(true);
+    setAllAbsentLoading(true);
+    setAllAbsentSearch("");
+    setAllAbsentClass("all");
+    setAllAbsentSession("all");
+    try{
+      const res=await callAPI("getAllTodayAbsentStudents");
+      if(!res || !res.success) throw new Error(res?.error || "تعذر تحميل الغياب");
+      setAllAbsentRows(Array.isArray(res.students) ? res.students : []);
+    }catch(error){setAllAbsentRows([]);showMessage(error.message || "فشل تحميل الغياب", "error");}
+    finally{setAllAbsentLoading(false);}
   }
 
   function sendOneWhatsapp(student){
+    const phone=formatPhoneForWhatsApp(student.phone);
+    if(!phone){showMessage("لا يوجد رقم ولي أمر لهذه الطالبة","warning");return;}
+    const message="ولي الأمر المحترم، نحيط علم سيادتكم بغياب الطالبة: "+student.name+
+      "، فصل: "+student.className+"، اليوم في: "+student.sessions.join("، ")+". برجاء المتابعة. إدارة المدرسة";
+    const opened=window.open("https://wa.me/"+phone+"?text="+encodeURIComponent(message),"_blank");
+    if(!opened){showMessage("اسمح بفتح النوافذ المنبثقة لإرسال الرسالة", "warning");return;}
+    setOpenedWhatsApp(prev=>prev.includes(student.className+"|"+student.seat)?prev:[...prev,student.className+"|"+student.seat]);
+    showMessage("تم فتح WhatsApp؛ تأكد من الضغط على إرسال داخل التطبيق", "info");
+  }
 
-    if(!student.phone){
-      showMessage("لا يوجد رقم ولي أمر لهذه الطالبة","warning");
-      return;
-    }
+  const filteredAllAbsent=allAbsentRows.filter(student=>{
+    const q=normalizeStudentSearch(allAbsentSearch);
+    return (allAbsentClass==="all" || student.className===allAbsentClass) &&
+      (allAbsentSession==="all" || student.sessions.includes(allAbsentSession)) &&
+      (!q || normalizeStudentSearch(student.name).includes(q) || normalizeStudentSearch(student.seat).includes(q) || normalizeStudentSearch(student.className).includes(q));
+  });
 
-    const url =
-      "https://wa.me/" +
-      student.phone +
-      "?text=" +
-      encodeURIComponent(student.message);
-
-    window.open(url,"_blank");
-
-    setWhatsappList(
-      whatsappList.filter(
-        s => String(s.seat) !== String(student.seat)
-      )
-    );
-
-    showMessage("تم فتح رسالة WhatsApp للطالبة","success");
-
+  function printAllAbsentPDF(){
+    if(!filteredAllAbsent.length){showMessage("لا توجد بيانات للطباعة", "warning");return;}
+    const escapeHTML=value=>String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    const date=new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+    const rows=filteredAllAbsent.map((student,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(student.seat)}</td><td>${escapeHTML(student.name)}</td><td>${escapeHTML(student.className)}</td><td>${escapeHTML(student.sessions.join("، "))}</td></tr>`).join("");
+    const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير غياب اليوم</title><style>@page{size:A4 portrait;margin:13mm}body{font-family:Arial,Tahoma,sans-serif;color:#111827;direction:rtl}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #333;padding:7px;text-align:center;word-break:break-word}th{background:#e5e7eb}thead{display:table-header-group}tr{break-inside:avoid}footer{margin-top:20px;text-align:left}@media print{button{display:none}}</style></head><body><h2>تقرير غياب اليوم - جميع الفصول</h2><p>${escapeHTML(date)} | الفصل: ${escapeHTML(allAbsentClass==="all"?"جميع الفصول":allAbsentClass)} | الجلسة: ${escapeHTML(allAbsentSession==="all"?"جميع الجلسات":allAbsentSession)} | عدد الطالبات: ${filteredAllAbsent.length}</p><table><thead><tr><th>م</th><th>رقم الجلوس</th><th>اسم الطالبة</th><th>الفصل</th><th>جلسات الغياب</th></tr></thead><tbody>${rows}</tbody></table><footer>إدارة المدرسة</footer><script>window.onload=function(){window.print();};</script></body></html>`;
+    const win=window.open("","_blank");
+    if(!win){showMessage("اسمح بالنوافذ المنبثقة لطباعة التقرير", "warning");return;}
+    win.document.open();win.document.write(html);win.document.close();
   }
 
   // Arabic-friendly matching is for suggestions only; saving still uses the exact seat.
@@ -1490,43 +1462,9 @@ function Attendance({ user }){
         طباعة كشف الفصل PDF
       </Button>
 
-      {String(user?.role || "").trim().toLowerCase() === "admin" && (
-
-  <Button
-    variant="contained"
-    color="secondary"
-    size="large"
-    style={{
-      borderRadius:"12px",
-      fontWeight:"bold",
-      padding:"12px 24px",
-      marginRight:"0px"
-    }}
-    onClick={sendWhatsAppToAbsent}
-  >
-    إرسال WhatsApp للغائبين
-  </Button>
-
-)}
-
-     {user && user.role === "Admin" && (
-
-  <Button
-    variant="contained"
-    color="secondary"
-    size="large"
-    style={{
-      borderRadius:"12px",
-      fontWeight:"bold",
-      padding:"12px 24px",
-      marginRight:"0px"
-    }}
-    onClick={sendWhatsAppToAbsent}
-  >
-    إرسال WhatsApp للغائبين
-  </Button>
-
-)}
+             <Button variant="contained" color="secondary" size="large"
+         style={{borderRadius:"12px",fontWeight:"bold",padding:"12px 24px"}}
+         onClick={openAllAbsent}>عرض غائبي اليوم – جميع الفصول</Button>
 
 {String(user?.role || "").trim().toLowerCase() === "admin" && (
 
@@ -1616,87 +1554,32 @@ function Attendance({ user }){
          </DialogActions>
        </Dialog>
 
-      <Dialog
-        open={whatsappOpen}
-        onClose={()=>setWhatsappOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          إرسال رسائل WhatsApp للغائبات
-        </DialogTitle>
+             <Dialog open={allAbsentOpen} onClose={()=>setAllAbsentOpen(false)} maxWidth="xl" fullWidth>
+         <DialogTitle>غياب اليوم – جميع الفصول</DialogTitle>
+         <DialogContent>
+           <Alert severity="info" style={{marginBottom:12}}>تظهر كل طالبة مرة واحدة مع جميع جلسات غيابها. زر WhatsApp يفتح الرسالة ولا يرسلها تلقائيًا.</Alert>
+           <Grid container spacing={2} style={{marginTop:4,marginBottom:16}}>
+             <Grid item xs={12} md={5}><TextField fullWidth label="بحث بالاسم أو رقم الجلوس أو الفصل" value={allAbsentSearch} onChange={e=>setAllAbsentSearch(e.target.value)}/></Grid>
+             <Grid item xs={12} md={3}><FormControl fullWidth><Select value={allAbsentClass} onChange={e=>setAllAbsentClass(e.target.value)}><MenuItem value="all">جميع الفصول</MenuItem>{[...new Set(allAbsentRows.map(s=>s.className))].map(c=><MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
+             <Grid item xs={12} md={4}><FormControl fullWidth><Select value={allAbsentSession} onChange={e=>setAllAbsentSession(e.target.value)}><MenuItem value="all">جميع الجلسات</MenuItem>{[...new Set(allAbsentRows.flatMap(s=>s.sessions))].map(c=><MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
+           </Grid>
+           <Typography fontWeight="bold" gutterBottom>عدد الغائبات: {filteredAllAbsent.length}</Typography>
+           {allAbsentLoading ? <Alert severity="info">جارٍ تحميل الغياب من جميع الفصول...</Alert> : filteredAllAbsent.length===0 ? <Alert severity="warning">لا توجد حالات غياب مطابقة.</Alert> : (
+             <Box style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",direction:"rtl"}}><thead><tr>{["م","رقم الجلوس","اسم الطالبة","الفصل","جلسات الغياب","الهاتف","WhatsApp"].map(h=><th key={h} style={{padding:10,borderBottom:"2px solid #ddd",textAlign:"right"}}>{h}</th>)}</tr></thead><tbody>
+               {filteredAllAbsent.map((student,index)=><tr key={student.className+"|"+student.seat}>
+                 <td style={{padding:8,borderBottom:"1px solid #eee"}}>{index+1}</td><td>{student.seat}</td><td>{student.name}</td><td>{student.className}</td><td>{student.sessions.join("، ")}</td><td>{student.phone || "غير مسجل"}</td><td><Button size="small" variant="contained" color="success" disabled={!student.phone} onClick={()=>sendOneWhatsapp(student)}>{openedWhatsApp.includes(student.className+"|"+student.seat)?"فتح مرة أخرى":"فتح WhatsApp"}</Button></td>
+               </tr>)}
+             </tbody></table></Box>
+           )}
+         </DialogContent>
+         <DialogActions>
+           <Button disabled={allAbsentLoading} onClick={openAllAbsent}>تحديث البيانات</Button>
+           <Button disabled={allAbsentLoading || !filteredAllAbsent.length} variant="contained" color="info" onClick={printAllAbsentPDF}>طباعة / حفظ PDF</Button>
+           <Button onClick={()=>setAllAbsentOpen(false)}>إغلاق</Button>
+         </DialogActions>
+       </Dialog>
 
-        <DialogContent>
-
-          {whatsappList.length === 0 ? (
-
-            <Alert severity="success">
-              تم إرسال / فتح جميع الرسائل
-            </Alert>
-
-          ) : (
-
-            whatsappList.map((s,index)=>(
-
-              <Paper
-                key={index}
-                elevation={2}
-                style={{
-                  padding:"12px",
-                  marginBottom:"10px",
-                  borderRadius:"12px",
-                  display:"flex",
-                  justifyContent:"space-between",
-                  alignItems:"center",
-                  gap:"10px"
-                }}
-              >
-                <Box>
-                  <Typography fontWeight="bold">
-                    {s.name}
-                  </Typography>
-
-                  <Typography variant="body2">
-                    رقم الجلوس: {s.seat}
-                  </Typography>
-
-                  <Typography variant="body2">
-                    الهاتف: {s.phone || "لا يوجد رقم"}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  {s.canSend ? (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={()=>sendOneWhatsapp(s)}
-                    >
-                      إرسال WhatsApp
-                    </Button>
-                  ) : (
-                    <Chip
-                      label="لا يوجد رقم"
-                      color="error"
-                    />
-                  )}
-                </Box>
-              </Paper>
-
-            ))
-
-          )}
-
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={()=>setWhatsappOpen(false)}>
-            إغلاق
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
+<Dialog
         open={editOpen}
         onClose={()=>setEditOpen(false)}
         maxWidth="xl"
