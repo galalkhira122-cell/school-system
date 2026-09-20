@@ -81,6 +81,9 @@ function Attendance({ user }){
   const [dateEditOpen,setDateEditOpen] = useState(false);
   const [dateEditDate,setDateEditDate] = useState("");
   const [dateEditSeat,setDateEditSeat] = useState("");
+  const [dateEditQuery,setDateEditQuery] = useState("");
+  const [dateEditCandidates,setDateEditCandidates] = useState([]);
+  const [dateEditCandidatesBusy,setDateEditCandidatesBusy] = useState(false);
   const [dateEditStudent,setDateEditStudent] = useState(null);
   const [dateEditSessions,setDateEditSessions] = useState([]);
   const [dateEditBusy,setDateEditBusy] = useState(false);
@@ -484,6 +487,56 @@ function Attendance({ user }){
 
     showMessage("تم فتح رسالة WhatsApp للطالبة","success");
 
+  }
+
+  // Arabic-friendly matching is for suggestions only; saving still uses the exact seat.
+  function normalizeStudentSearch(value){
+    return String(value || "")
+      .normalize("NFKC")
+      .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+      .replace(/[أإآٱ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ة/g, "ه")
+      .replace(/ؤ/g, "و")
+      .replace(/ئ/g, "ي")
+      .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0)-0x660))
+      .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0)-0x6f0))
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  async function openDateEdit(){
+    if(!selectedClass){showMessage("اختر الفصل أولًا", "warning");return;}
+    setDateEditOpen(true);
+    setDateEditQuery("");
+    setDateEditSeat("");
+    setDateEditStudent(null);
+    setDateEditSessions([]);
+    setDateEditCandidates([]);
+    setDateEditCandidatesBusy(true);
+    try{
+      const res=await callAPI("getStudents",{className:selectedClass,lang:"all",section:"all"});
+      if(!Array.isArray(res)) throw new Error(res?.error || "تعذر تحميل أسماء الطالبات");
+      setDateEditCandidates(res.map(s=>({seat:String(s.seat ?? "").trim(),name:String(s.name ?? "").trim()})).filter(s=>s.seat));
+    }catch(error){showMessage(error.message || "تعذر تحميل أسماء الطالبات", "error");}
+    finally{setDateEditCandidatesBusy(false);}
+  }
+
+  const matchingDateEditCandidates = dateEditQuery.trim()
+    ? dateEditCandidates.filter(s=>{
+        const q=normalizeStudentSearch(dateEditQuery);
+        return normalizeStudentSearch(s.name).startsWith(q) ||
+          normalizeStudentSearch(s.name).split(" ").some(part=>part.startsWith(q)) ||
+          normalizeStudentSearch(s.seat).includes(q);
+      })
+    : [];
+
+  function selectDateEditCandidate(student){
+    setDateEditSeat(student.seat);
+    setDateEditQuery(student.name + " — " + student.seat);
+    setDateEditStudent(null);
+    setDateEditSessions([]);
   }
 
   async function loadDateEdit(){
@@ -1407,6 +1460,7 @@ function Attendance({ user }){
 
       <br/>
 
+      <Box style={{display:"flex",flexWrap:"wrap",gap:"12px",alignItems:"center",marginBottom:"20px"}}>
       <Button
         variant="contained"
         color="success"
@@ -1414,7 +1468,7 @@ function Attendance({ user }){
         style={{
           borderRadius:"12px",
           fontWeight:"bold",
-          padding:"12px 40px"
+          padding:"12px 24px"
         }}
         onClick={save}
       >
@@ -1428,8 +1482,8 @@ function Attendance({ user }){
         style={{
           borderRadius:"12px",
           fontWeight:"bold",
-          padding:"12px 40px",
-          marginRight:"12px"
+          padding:"12px 24px",
+          marginRight:"0px"
         }}
         onClick={printClassPDF}
       >
@@ -1445,8 +1499,8 @@ function Attendance({ user }){
     style={{
       borderRadius:"12px",
       fontWeight:"bold",
-      padding:"12px 40px",
-      marginRight:"12px"
+      padding:"12px 24px",
+      marginRight:"0px"
     }}
     onClick={sendWhatsAppToAbsent}
   >
@@ -1464,8 +1518,8 @@ function Attendance({ user }){
     style={{
       borderRadius:"12px",
       fontWeight:"bold",
-      padding:"12px 40px",
-      marginRight:"12px"
+      padding:"12px 24px",
+      marginRight:"0px"
     }}
     onClick={sendWhatsAppToAbsent}
   >
@@ -1483,8 +1537,8 @@ function Attendance({ user }){
     style={{
       borderRadius:"12px",
       fontWeight:"bold",
-      padding:"12px 40px",
-      marginRight:"12px"
+      padding:"12px 24px",
+      marginRight:"0px"
     }}
     onClick={openAdminEdit}
     disabled={editLoading}
@@ -1496,10 +1550,12 @@ function Attendance({ user }){
 
        {String(user?.role || "").trim().toLowerCase() === "admin" && (
          <Button variant="contained" color="primary" size="large"
-           style={{borderRadius:"12px",fontWeight:"bold",padding:"12px 40px",marginRight:"12px"}}
-           onClick={()=>{setDateEditOpen(true);setDateEditStudent(null);setDateEditSessions([]);}}
+           style={{borderRadius:"12px",fontWeight:"bold",padding:"12px 24px",marginRight:"0px"}}
+           onClick={openDateEdit}
          >تعديل غياب بتاريخ محدد</Button>
        )}
+
+      </Box>
 
        <Dialog open={dateEditOpen} onClose={()=>!dateEditBusy && setDateEditOpen(false)} maxWidth="md" fullWidth>
          <DialogTitle>تعديل غياب طالبة بتاريخ محدد — {selectedClass || "اختر الفصل أولًا"}</DialogTitle>
@@ -1512,11 +1568,27 @@ function Attendance({ user }){
                  InputLabelProps={{shrink:true}} />
              </Grid>
              <Grid item xs={12} md={6}>
-               <TextField fullWidth label="رقم جلوس الطالبة" value={dateEditSeat}
-                 onChange={e=>{setDateEditSeat(e.target.value);setDateEditStudent(null);setDateEditSessions([]);}} />
+               <TextField fullWidth label="بحث برقم الجلوس أو اسم الطالبة" value={dateEditQuery}
+                 onChange={e=>{setDateEditQuery(e.target.value);setDateEditSeat("");setDateEditStudent(null);setDateEditSessions([]);}}
+                 helperText={dateEditSeat ? "تم اختيار رقم الجلوس: " + dateEditSeat : "اكتب أول الاسم أو جزءًا منه أو رقم الجلوس، ثم اختر الطالبة من النتائج"} />
              </Grid>
            </Grid>
-           <Button variant="contained" style={{marginTop:16,marginBottom:16}} disabled={dateEditBusy} onClick={loadDateEdit}>
+            {dateEditCandidatesBusy && <Alert severity="info" style={{marginTop:12}}>جارٍ تحميل أسماء الطالبات...</Alert>}
+            {!dateEditCandidatesBusy && dateEditQuery.trim() && !dateEditSeat && (
+              <Paper variant="outlined" style={{marginTop:12,maxHeight:240,overflowY:"auto"}}>
+                {matchingDateEditCandidates.length === 0 ? (
+                  <Alert severity="warning">لا توجد نتائج مطابقة. تحقق من الفصل أو جرّب جزءًا آخر من الاسم.</Alert>
+                ) : matchingDateEditCandidates.map((candidate,index)=>(
+                  <Button key={candidate.seat+"-"+index} fullWidth
+                    style={{justifyContent:"flex-start",textAlign:"right",padding:12}}
+                    onClick={()=>selectDateEditCandidate(candidate)}>
+                    {candidate.name} — رقم الجلوس: {candidate.seat}
+                  </Button>
+                ))}
+              </Paper>
+            )}
+            {dateEditSeat && <Alert severity="success" style={{marginTop:12}}>الطالبة المختارة: {dateEditQuery}</Alert>}
+           <Button variant="contained" style={{marginTop:16,marginBottom:16}} disabled={dateEditBusy || dateEditCandidatesBusy || !dateEditSeat || !dateEditDate} onClick={loadDateEdit}>
              {dateEditBusy ? "جارٍ التنفيذ..." : "عرض الغياب المسجل"}
            </Button>
            {dateEditStudent && <Typography variant="h6" gutterBottom>{dateEditStudent.name} — {dateEditStudent.seat}</Typography>}
