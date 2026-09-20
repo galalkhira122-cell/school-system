@@ -78,6 +78,12 @@ function Attendance({ user }){
   const [whatsappOpen,setWhatsappOpen] = useState(false);
   const [whatsappList,setWhatsappList] = useState([]);
 
+  const [dateEditOpen,setDateEditOpen] = useState(false);
+  const [dateEditDate,setDateEditDate] = useState("");
+  const [dateEditSeat,setDateEditSeat] = useState("");
+  const [dateEditStudent,setDateEditStudent] = useState(null);
+  const [dateEditSessions,setDateEditSessions] = useState([]);
+  const [dateEditBusy,setDateEditBusy] = useState(false);
   const [editOpen,setEditOpen] = useState(false);
   const [editStudents,setEditStudents] = useState([]);
   const [editLoading,setEditLoading] = useState(false);
@@ -478,6 +484,42 @@ function Attendance({ user }){
 
     showMessage("تم فتح رسالة WhatsApp للطالبة","success");
 
+  }
+
+  async function loadDateEdit(){
+    if(!selectedClass || !dateEditSeat.trim() || !dateEditDate){
+      showMessage("اختر الفصل والتاريخ وأدخل رقم جلوس الطالبة", "warning");return;
+    }
+    setDateEditBusy(true);
+    setDateEditStudent(null);
+    setDateEditSessions([]);
+    try{
+      const res=await callAPI("getStudentAttendanceByDate",{
+        className:selectedClass,seat:dateEditSeat.trim(),date:dateEditDate
+      });
+      if(!res || !res.success) throw new Error(res?.error || "تعذر تحميل الغياب");
+      setDateEditStudent(res.student);
+      setDateEditSessions(res.sessions || []);
+    }catch(error){showMessage(error.message || "فشل التحميل","error");}
+    finally{setDateEditBusy(false);}
+  }
+
+  async function saveDateEdit(){
+    if(!dateEditStudent || !dateEditSessions.length) return;
+    setDateEditBusy(true);
+    try{
+      const res=await callAPI("saveStudentAttendanceByDate",{
+        className:dateEditStudent.className,seat:dateEditStudent.seat,date:dateEditDate,
+        userName:user?.username || "Admin",
+        records:dateEditSessions.map(s=>({colIndex:s.colIndex,status:s.status}))
+      });
+      if(!res || !res.success) throw new Error(res?.error || "فشل حفظ التعديلات");
+      showMessage(res.message || "تم الحفظ بنجاح","success");
+      setDateEditOpen(false);
+      loadTodaySummary();
+      if(selectedClass) await loadStudents();
+    }catch(error){showMessage(error.message || "فشل الحفظ","error");}
+    finally{setDateEditBusy(false);}
   }
 
   async function openAdminEdit(){
@@ -1451,6 +1493,56 @@ function Attendance({ user }){
   </Button>
 
 )}
+
+       {String(user?.role || "").trim().toLowerCase() === "admin" && (
+         <Button variant="contained" color="primary" size="large"
+           style={{borderRadius:"12px",fontWeight:"bold",padding:"12px 40px",marginRight:"12px"}}
+           onClick={()=>{setDateEditOpen(true);setDateEditStudent(null);setDateEditSessions([]);}}
+         >تعديل غياب بتاريخ محدد</Button>
+       )}
+
+       <Dialog open={dateEditOpen} onClose={()=>!dateEditBusy && setDateEditOpen(false)} maxWidth="md" fullWidth>
+         <DialogTitle>تعديل غياب طالبة بتاريخ محدد — {selectedClass || "اختر الفصل أولًا"}</DialogTitle>
+         <DialogContent>
+           <Alert severity="info" style={{marginBottom:16}}>يتم تعديل البيانات في ورقة حصر الغياب فقط، حسب رقم الجلوس والفصل والتاريخ.</Alert>
+           <Grid container spacing={2} style={{marginTop:4}}>
+             <Grid item xs={12} md={6}>
+               <TextField fullWidth label="التاريخ" type="date" value={dateEditDate}
+                 onChange={e=>{setDateEditDate(e.target.value);setDateEditStudent(null);setDateEditSessions([]);}}
+                 InputLabelProps={{shrink:true}} />
+             </Grid>
+             <Grid item xs={12} md={6}>
+               <TextField fullWidth label="رقم جلوس الطالبة" value={dateEditSeat}
+                 onChange={e=>{setDateEditSeat(e.target.value);setDateEditStudent(null);setDateEditSessions([]);}} />
+             </Grid>
+           </Grid>
+           <Button variant="contained" style={{marginTop:16,marginBottom:16}} disabled={dateEditBusy} onClick={loadDateEdit}>
+             {dateEditBusy ? "جارٍ التنفيذ..." : "عرض الغياب المسجل"}
+           </Button>
+           {dateEditStudent && <Typography variant="h6" gutterBottom>{dateEditStudent.name} — {dateEditStudent.seat}</Typography>}
+           {dateEditSessions.map((s,index)=>(
+             <Paper key={s.colIndex} style={{padding:12,marginBottom:10}}>
+               <Grid container spacing={2} alignItems="center">
+                 <Grid item xs={12} md={6}><Typography>{s.sessionName}</Typography></Grid>
+                 <Grid item xs={12} md={6}>
+                   <FormControl fullWidth><Select value={s.status} disabled={dateEditBusy}
+                     onChange={e=>setDateEditSessions(prev=>prev.map((item,i)=>i===index?{...item,status:e.target.value}:item))}>
+                     <MenuItem value="">فارغ</MenuItem>
+                     <MenuItem value="ح">حاضر</MenuItem>
+                     <MenuItem value="غ">غائب</MenuItem>
+                     <MenuItem value="مرضي">مرضي</MenuItem>
+                   </Select></FormControl>
+                 </Grid>
+               </Grid>
+             </Paper>
+           ))}
+         </DialogContent>
+         <DialogActions>
+           <Button disabled={dateEditBusy} onClick={()=>setDateEditOpen(false)}>إلغاء</Button>
+           <Button variant="contained" color="success" disabled={dateEditBusy || !dateEditStudent || !dateEditSessions.length}
+             onClick={saveDateEdit}>حفظ التعديلات</Button>
+         </DialogActions>
+       </Dialog>
 
       <Dialog
         open={whatsappOpen}
