@@ -68,6 +68,7 @@ function Attendance({ user }){
 
   const [msg,setMsg] = useState("");
   const [msgType,setMsgType] = useState("success");
+  const [saveSuccessOpen,setSaveSuccessOpen] = useState(false);
 
   const [activeSession,setActiveSession] = useState(null);
   const [manualSession,setManualSession] = useState("");
@@ -366,10 +367,7 @@ function Attendance({ user }){
 
       if(res && res.success){
 
-        showMessage(
-          res.message || "تم الحفظ بنجاح",
-          "success"
-        );
+        setSaveSuccessOpen(true);
 
         await loadStudents();
         loadTodaySummary();
@@ -1752,6 +1750,49 @@ function Attendance({ user }){
         </DialogActions>
 
       </Dialog>
+
+      {/* Confirmation is shown only after saveAbsence returns success. */}
+      <Snackbar
+        open={saveSuccessOpen}
+        autoHideDuration={4000}
+        onClose={(_, reason)=>{if(reason !== "clickaway") setSaveSuccessOpen(false);}}
+        anchorOrigin={{vertical:"top",horizontal:"center"}}
+        sx={{
+          "&.MuiSnackbar-root":{
+            top:"50% !important",
+            left:"50% !important",
+            right:"auto !important",
+            transform:"translate(-50%, -50%) !important",
+            width:"min(92vw, 470px)",
+            zIndex:1600
+          }
+        }}
+      >
+        <Alert
+          icon={false}
+          onClose={()=>setSaveSuccessOpen(false)}
+          severity="info"
+          variant="filled"
+          sx={{
+            width:"100%",
+            boxSizing:"border-box",
+            direction:"rtl",
+            textAlign:"center",
+            justifyContent:"center",
+            alignItems:"center",
+            borderRadius:"18px",
+            background:"linear-gradient(135deg, #1e3a8a, #4338ca)",
+            color:"#ffffff",
+            boxShadow:"0 20px 55px rgba(15,23,42,0.45)",
+            padding:"22px 18px",
+            "& .MuiAlert-message":{width:"100%",fontSize:"23px",fontWeight:800,lineHeight:1.7},
+            "& .MuiAlert-action":{color:"#ffffff",paddingTop:0,alignItems:"flex-start"},
+            "& .MuiIconButton-root":{color:"#ffffff"}
+          }}
+        >
+          ✔ تم حفظ الغياب بنجاح
+        </Alert>
+      </Snackbar>
 
       <Snackbar
         open={Boolean(msg)}
