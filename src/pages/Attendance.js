@@ -68,7 +68,6 @@ function Attendance({ user }){
 
   const [msg,setMsg] = useState("");
   const [msgType,setMsgType] = useState("success");
-  const [saveSuccessOpen,setSaveSuccessOpen] = useState(false);
 
   const [activeSession,setActiveSession] = useState(null);
   const [manualSession,setManualSession] = useState("");
@@ -235,48 +234,64 @@ function Attendance({ user }){
   }
 
   async function loadStudents(){
-    if(!selectedClass){
-      showMessage("اختر الفصل أولًا","warning");
-      return;
-    }
 
-    setLoading(true);
     try{
-      // Start both independent Apps Script requests together instead of waiting twice.
-      const [data,statusData] = await Promise.all([
-        callAPI("getStudents",{className:selectedClass,lang:lang,section:section}),
-        callAPI("getTodayStudentStatus",{className:selectedClass})
-      ]);
 
-      if(!Array.isArray(data)){
-        throw new Error(data?.error || "فشل تحميل بيانات الطلاب");
-      }
-      if(!Array.isArray(statusData)){
-        throw new Error(statusData?.error || "فشل تحميل حالة الحضور اليوم");
+      if(!selectedClass){
+        showMessage("اختر الفصل أولًا","warning");
+        return;
       }
 
-      // O(n) status lookup, rather than searching the full status list per student.
-      const statusBySeat = new Map(
-        statusData.map(item=>[String(item.seat).trim(),item.todayStatus])
-      );
-      const arr = data.map((student,index)=>{
-        const seat = String(student.seat).trim();
-        return {
-          id:index,
-          seat:seat,
-          name:student.name,
-          absent:false,
-          todayStatus:statusBySeat.get(seat) || "لم يسجل"
-        };
-      });
+      setLoading(true);
+
+      const data =
+        await callAPI("getStudents",{
+          className:selectedClass,
+          lang:lang,
+          section:section
+        });
+
+      const statusData =
+        await callAPI("getTodayStudentStatus",{
+          className:selectedClass
+        });
+
+      const arr =
+        Array.isArray(data)
+          ? data.map((s,index)=>{
+
+              const found =
+                Array.isArray(statusData)
+                  ? statusData.find(
+                      x =>
+                        String(x.seat).trim() ===
+                        String(s.seat).trim()
+                    )
+                  : null;
+
+              return {
+                id:index,
+                seat:String(s.seat).trim(),
+                name:s.name,
+                absent:false,
+                todayStatus:found ? found.todayStatus : "لم يسجل"
+              };
+
+            })
+          : [];
+
       setStudents(arr);
-      showMessage("تم تحميل الطلاب","success");
-    }catch(error){
-      console.log(error);
-      showMessage(error?.message || "فشل تحميل الطلاب","error");
-    }finally{
       setLoading(false);
+      showMessage("تم تحميل الطلاب","success");
+
+    }catch(error){
+
+      console.log(error);
+      setLoading(false);
+      showMessage("فشل تحميل الطلاب","error");
+
     }
+
   }
 
   function toggle(id){
@@ -351,7 +366,10 @@ function Attendance({ user }){
 
       if(res && res.success){
 
-        setSaveSuccessOpen(true);
+        showMessage(
+          res.message || "تم الحفظ بنجاح",
+          "success"
+        );
 
         await loadStudents();
         loadTodaySummary();
@@ -1734,49 +1752,6 @@ function Attendance({ user }){
         </DialogActions>
 
       </Dialog>
-
-      {/* Confirmation is shown only after saveAbsence returns success. */}
-      <Snackbar
-        open={saveSuccessOpen}
-        autoHideDuration={4000}
-        onClose={(_, reason)=>{if(reason !== "clickaway") setSaveSuccessOpen(false);}}
-        anchorOrigin={{vertical:"top",horizontal:"center"}}
-        sx={{
-          "&.MuiSnackbar-root":{
-            top:"50% !important",
-            left:"50% !important",
-            right:"auto !important",
-            transform:"translate(-50%, -50%) !important",
-            width:"min(92vw, 470px)",
-            zIndex:1600
-          }
-        }}
-      >
-        <Alert
-          icon={false}
-          onClose={()=>setSaveSuccessOpen(false)}
-          severity="info"
-          variant="filled"
-          sx={{
-            width:"100%",
-            boxSizing:"border-box",
-            direction:"rtl",
-            textAlign:"center",
-            justifyContent:"center",
-            alignItems:"center",
-            borderRadius:"18px",
-            background:"linear-gradient(135deg, #1e3a8a, #4338ca)",
-            color:"#ffffff",
-            boxShadow:"0 20px 55px rgba(15,23,42,0.45)",
-            padding:"22px 18px",
-            "& .MuiAlert-message":{width:"100%",fontSize:"23px",fontWeight:800,lineHeight:1.7},
-            "& .MuiAlert-action":{color:"#ffffff",paddingTop:0,alignItems:"flex-start"},
-            "& .MuiIconButton-root":{color:"#ffffff"}
-          }}
-        >
-          ✔ تم حفظ الغياب بنجاح
-        </Alert>
-      </Snackbar>
 
       <Snackbar
         open={Boolean(msg)}
