@@ -235,64 +235,48 @@ function Attendance({ user }){
   }
 
   async function loadStudents(){
-
-    try{
-
-      if(!selectedClass){
-        showMessage("اختر الفصل أولًا","warning");
-        return;
-      }
-
-      setLoading(true);
-
-      const data =
-        await callAPI("getStudents",{
-          className:selectedClass,
-          lang:lang,
-          section:section
-        });
-
-      const statusData =
-        await callAPI("getTodayStudentStatus",{
-          className:selectedClass
-        });
-
-      const arr =
-        Array.isArray(data)
-          ? data.map((s,index)=>{
-
-              const found =
-                Array.isArray(statusData)
-                  ? statusData.find(
-                      x =>
-                        String(x.seat).trim() ===
-                        String(s.seat).trim()
-                    )
-                  : null;
-
-              return {
-                id:index,
-                seat:String(s.seat).trim(),
-                name:s.name,
-                absent:false,
-                todayStatus:found ? found.todayStatus : "لم يسجل"
-              };
-
-            })
-          : [];
-
-      setStudents(arr);
-      setLoading(false);
-      showMessage("تم تحميل الطلاب","success");
-
-    }catch(error){
-
-      console.log(error);
-      setLoading(false);
-      showMessage("فشل تحميل الطلاب","error");
-
+    if(!selectedClass){
+      showMessage("اختر الفصل أولًا","warning");
+      return;
     }
 
+    setLoading(true);
+    try{
+      // Start both independent Apps Script requests together instead of waiting twice.
+      const [data,statusData] = await Promise.all([
+        callAPI("getStudents",{className:selectedClass,lang:lang,section:section}),
+        callAPI("getTodayStudentStatus",{className:selectedClass})
+      ]);
+
+      if(!Array.isArray(data)){
+        throw new Error(data?.error || "فشل تحميل بيانات الطلاب");
+      }
+      if(!Array.isArray(statusData)){
+        throw new Error(statusData?.error || "فشل تحميل حالة الحضور اليوم");
+      }
+
+      // O(n) status lookup, rather than searching the full status list per student.
+      const statusBySeat = new Map(
+        statusData.map(item=>[String(item.seat).trim(),item.todayStatus])
+      );
+      const arr = data.map((student,index)=>{
+        const seat = String(student.seat).trim();
+        return {
+          id:index,
+          seat:seat,
+          name:student.name,
+          absent:false,
+          todayStatus:statusBySeat.get(seat) || "لم يسجل"
+        };
+      });
+      setStudents(arr);
+      showMessage("تم تحميل الطلاب","success");
+    }catch(error){
+      console.log(error);
+      showMessage(error?.message || "فشل تحميل الطلاب","error");
+    }finally{
+      setLoading(false);
+    }
   }
 
   function toggle(id){
