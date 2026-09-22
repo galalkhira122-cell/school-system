@@ -1,4 +1,4 @@
-import React,{ useEffect, useState } from "react";
+import React,{ useEffect, useState, useRef } from "react";
 
 import {
   Container,
@@ -51,6 +51,8 @@ function LabelBox({ title, children }){
 
 function Attendance({ user }){
 
+  const saveInFlight = useRef(false);
+  const [saving,setSaving] = useState(false);
   const [classes,setClasses] = useState([]);
   const [teachers,setTeachers] = useState([]);
   const [students,setStudents] = useState([]);
@@ -113,7 +115,7 @@ function Attendance({ user }){
   loadTodaySummary();
 
   const timer =
-    setInterval(loadTodaySummary,30000);
+    setInterval(loadTodaySummary,120000);
 
   return ()=>clearInterval(timer);
 
@@ -165,7 +167,7 @@ function Attendance({ user }){
 
     }catch(error){
       console.log(error);
-      setTodaySummary([]);
+      // Preserve last valid summary during transient failures.
     }
 
   }
@@ -228,71 +230,54 @@ function Attendance({ user }){
 
       console.log(error);
       setLoading(false);
-      showMessage("فشل تحميل البيانات","error");
+      showMessage("فشل تحميل البيانات: "+(error?.message||String(error)),"error");
 
     }
 
   }
 
   async function loadStudents(){
-
+    if(!selectedClass){showMessage("اختر الفصل أولًا","warning");return;}
+    setLoading(true);
+    const filters={className:selectedClass,lang,section};
     try{
-
-      if(!selectedClass){
-        showMessage("اختر الفصل أولًا","warning");
-        return;
+      let arr;
+      try{
+        const response=await callAPI("getAttendanceStudentsFast",filters);
+        if(!response?.success||!Array.isArray(response.students))
+          throw new Error(response?.error||"استجابة تحميل الطلاب غير صالحة");
+        arr=response.students.map((s,index)=>({
+          id:index,seat:String(s.seat??"").trim(),name:s.name,
+          absent:false,todayStatus:s.todayStatus||"لم يسجل"
+        }));
+      }catch(fastError){
+        // Read-only fallback; NEVER retry any save operation.
+        console.warn("Fast student loading unavailable; using compatible read-only fallback",fastError);
+        const roster=await callAPI("getStudents",filters);
+        if(!Array.isArray(roster))throw new Error(roster?.error||"تعذر تحميل قائمة الطلاب بالمسار الاحتياطي");
+        let statuses=[];
+        let statusUnavailable=false;
+        try{
+          const result=await callAPI("getTodayStudentStatus",{className:selectedClass});
+          if(Array.isArray(result))statuses=result;
+          else if(Array.isArray(result?.result))statuses=result.result;
+          else if(Array.isArray(result?.students))statuses=result.students;
+          else statusUnavailable=true;
+        }catch(statusError){statusUnavailable=true;console.warn("Today status unavailable",statusError);}
+        const bySeat=new Map(statuses.map(item=>[String(item.seat??"").trim(),item.todayStatus||"لم يسجل"]));
+        arr=roster.map((s,index)=>({
+          id:index,seat:String(s.seat??"").trim(),name:s.name,
+          absent:false,todayStatus:statusUnavailable?"غير متاح":(bySeat.get(String(s.seat??"").trim())||"لم يسجل")
+        }));
+        showMessage(statusUnavailable?"تم تحميل الأسماء، لكن تعذر جلب حالة اليوم؛ لا تعتمد على الحالة المعروضة قبل مراجعتها.":"تم تحميل الطلاب بالمسار الاحتياطي؛ تحقق من نشر الدالة السريعة.","warning");
       }
-
-      setLoading(true);
-
-      const data =
-        await callAPI("getStudents",{
-          className:selectedClass,
-          lang:lang,
-          section:section
-        });
-
-      const statusData =
-        await callAPI("getTodayStudentStatus",{
-          className:selectedClass
-        });
-
-      const arr =
-        Array.isArray(data)
-          ? data.map((s,index)=>{
-
-              const found =
-                Array.isArray(statusData)
-                  ? statusData.find(
-                      x =>
-                        String(x.seat).trim() ===
-                        String(s.seat).trim()
-                    )
-                  : null;
-
-              return {
-                id:index,
-                seat:String(s.seat).trim(),
-                name:s.name,
-                absent:false,
-                todayStatus:found ? found.todayStatus : "لم يسجل"
-              };
-
-            })
-          : [];
-
       setStudents(arr);
-      setLoading(false);
-      showMessage("تم تحميل الطلاب","success");
-
+      if(arr.length===0)showMessage("لا يوجد طلاب مطابقون للفصل والفلاتر المحددة","warning");
+      else if(!arr.some(s=>s.todayStatus==="غير متاح"))console.info("Students loaded",arr.length);
     }catch(error){
-
-      console.log(error);
-      setLoading(false);
-      showMessage("فشل تحميل الطلاب","error");
-
-    }
-
+      console.error("Student loading failed",error);
+      showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
+    }finally{setLoading(false);}
   }
 
   function toggle(id){
@@ -316,75 +301,33 @@ function Attendance({ user }){
   }
 
   async function save(){
-
+    if(saveInFlight.current)return;
+    if(!selectedClass){showMessage("اختر الفصل","warning");return;}
+    if(!teacher){showMessage("اختر المعلم","warning");return;}
+    const selectedSession=manualSession?sessions.find(x=>String(x.id)===String(manualSession)):activeSession;
+    if(!selectedSession){showMessage("لا توجد Session للحفظ","warning");return;}
+    if(!students.length){showMessage("قم بتحميل الطلاب أولًا","warning");return;}
+    const records=students.map(s=>({seat:String(s.seat).trim(),className:selectedClass,status:s.absent?"غ":"ح",teacher:teacher,sessionId:Number(selectedSession.id),sessionName:selectedSession.name}));
+    saveInFlight.current=true;
+    setSaving(true);
     try{
-
-      if(!selectedClass){
-        showMessage("اختر الفصل","warning");
-        return;
+      let result;
+      try{result=await callAPI("saveAbsence",{records});}
+      catch(networkError){
+        showMessage("تعذر استلام تأكيد الحفظ؛ جارٍ التحقق من الشيت دون إعادة الحفظ...","warning");
+        try{
+          const verification=await callAPI("verifyAbsenceSave",{records});
+          if(verification?.success&&verification.confirmed){result={success:true,verified:true};}
+          else{showMessage("حالة الحفظ غير مؤكدة. راجع الشيت قبل إعادة المحاولة. "+(networkError?.message||""),"warning");return;}
+        }catch(verificationError){showMessage("حالة الحفظ غير مؤكدة: تعذر التحقق من الشيت. لا تضغط حفظ مرة أخرى قبل مراجعة البيانات.","warning");return;}
       }
-
-      if(!teacher){
-
-        showMessage(
-          "اختر المعلم",
-          "warning"
-        );
-
-        return;
-
-      }
-
-      const selectedSession =
-        manualSession
-          ? sessions.find(x => String(x.id) === String(manualSession))
-          : activeSession;
-
-      if(!selectedSession){
-        showMessage("لا توجد Session للحفظ","warning");
-        return;
-      }
-
-      if(students.length === 0){
-        showMessage("قم بتحميل الطلاب أولًا","warning");
-        return;
-      }
-
-      const records =
-        students.map((s)=>({
-          seat:String(s.seat).trim(),
-          className:selectedClass,
-          status:s.absent ? "غ" : "ح",
-          teacher:teacher,
-          sessionId:Number(selectedSession.id),
-          sessionName:selectedSession.name
-        }));
-
-      const res =
-        await callAPI("saveAbsence",{
-          records:records
-        });
-
-      if(res && res.success){
-
+      if(result?.success){
+        setStudents(prev=>prev.map(s=>({...s,todayStatus:s.absent?"غائب":"حاضر"})));
         setSaveSuccessOpen(true);
-
-        await loadStudents();
+        // Refresh independently; never delay the save confirmation.
         loadTodaySummary();
-
-      }else{
-
-        showMessage("فشل الحفظ","error");
-
-      }
-
-    }catch(error){
-
-      console.log(error);
-      showMessage("خطأ في الحفظ","error");
-
-    }
-
+      }else showMessage(result?.error||"فشل الحفظ","error");
+    }finally{saveInFlight.current=false;setSaving(false);}
   }
 
   function formatPhoneForWhatsApp(phone){
@@ -1441,8 +1384,9 @@ function Attendance({ user }){
           padding:"12px 24px"
         }}
         onClick={save}
+        disabled={saving || loading}
       >
-        حفظ الغياب
+        {saving ? "جارٍ الحفظ / التحقق..." : "حفظ الغياب"}
       </Button>
 
       <Button
