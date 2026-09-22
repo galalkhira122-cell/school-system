@@ -46,6 +46,7 @@ import Users from "./pages/Users";
 import Backup from "./pages/Backup";
 import Settings from "./pages/Settings";
 import Monitor from "./pages/Monitor";
+import AscSettings from "./pages/AscSettings";
 import Login from "./pages/Login";
 import AuditLog from "./pages/AuditLog";
 
@@ -67,6 +68,7 @@ function Layout({ user, logout, settings }){
       return true;
     }
 
+    if(page === "asc-settings") return false;
     if(user.role === "Teacher"){
       return page === "attendance";
     }
@@ -131,6 +133,9 @@ function Layout({ user, logout, settings }){
       title:"متابعة التسجيل",
       path:"/monitor",
       icon:<MonitorHeartIcon />
+    },
+    {
+      key:"asc-settings", title:"إعداد جدول aSc", path:"/asc-settings", icon:<SettingsIcon />
     },
     {
       key:"users",
@@ -400,6 +405,7 @@ function Layout({ user, logout, settings }){
             }
           />
 
+          <Route path="/asc-settings" element={user?.role === "Admin" ? <AscSettings /> : <Dashboard />} />
           <Route
             path="/users"
             element={

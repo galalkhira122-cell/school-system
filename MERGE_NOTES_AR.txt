@@ -1,0 +1,8 @@
+نسخة دمج aSc + إصلاحات الحضور - 2026-09-22
+
+الأساس: school-system(5).zip، مع الاحتفاظ بصفحة إعداد جدول aSc وملف الجدول وتعديلات App/Monitor/Students.
+تم التحقق من تطابق src/api.js و src/pages/Attendance.js مع نسخة Vercel المحدّثة السابقة، لذلك لم يتم استبدالهما.
+
+طريقة التحديث: انسخ محتويات مجلد school-system إلى المستودع الأصلي D:\school-system مع الحفاظ على .git، ثم npm.cmd ci و npm.cmd run build و git status، وبعد التحقق git add ثم commit ثم push origin main.
+
+تنبيه: doGet_ASC_UPDATED.gs هو كود Google Apps Script ولا يُنشَر عبر Vercel؛ راجع دمجه في مشروع Apps Script ونشر نسخة Web App جديدة إذا لم تكن وظائف aSc منشورة بالفعل. لا تستبدل الخادم العامل بالكامل دون مراجعة.

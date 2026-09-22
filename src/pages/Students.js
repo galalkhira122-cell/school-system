@@ -75,7 +75,8 @@ function Students(){
       setLoading(true);
 
       const cls = await callAPI("getClasses");
-      const list = Array.isArray(cls) ? cls : [];
+      if (!Array.isArray(cls)) throw new Error(cls?.error || "استجابة getClasses ليست قائمة فصول");
+      const list = cls;
 
       setClasses(list);
 
@@ -90,7 +91,7 @@ function Students(){
 
       console.log(error);
       setLoading(false);
-      showMessage("فشل تحميل الفصول","error");
+      showMessage("فشل تحميل الفصول: "+(error?.message||String(error)),"error");
 
     }
 
@@ -109,9 +110,9 @@ function Students(){
           section:sectionValue || section
         });
 
+      if (!Array.isArray(data)) throw new Error(data?.error || "استجابة getStudents ليست قائمة طلاب");
       const cleanData =
-        Array.isArray(data)
-          ? data.filter((s)=>{
+        data.filter((s)=>{
 
               const seat =
                 String(s.seat || "").trim();
@@ -129,8 +130,7 @@ function Students(){
                 name !== "Name"
               );
 
-            })
-          : [];
+            });
 
       const arr =
         cleanData.map((s,index)=>({
@@ -151,7 +151,7 @@ function Students(){
 
       console.log(error);
       setLoading(false);
-      showMessage("فشل تحميل الطلاب","error");
+      showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
 
     }
 

@@ -1,0 +1,2040 @@
+{
+  "records": [
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "1B",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "1C",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "1C",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Mosaad Makhrat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Tarek Olaimy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "3A",
+      "teacher": "Tarek Olaimy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "3A",
+      "teacher": "Tarek Olaimy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Tarek Olaimy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Tarek Olaimy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Tarek Olaimy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Mohamed Agour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Mohamed Agour",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Mohamed Agour",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "2A",
+      "teacher": "Mohamed Agour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "2B",
+      "teacher": "Mohamed Agour",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Mohamed Agour",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Mohamed Agour",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "2A",
+      "teacher": "Mohamed Agour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Mohamed Agour",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Mohamed Agour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Mohamed Agour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Mohamed Agour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "3A",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "2B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Sherif El Rakhawy",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "2A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "1C",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "2A",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "1C",
+      "teacher": "Warda Abdel Aaty",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Yasser Afat",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Yasser Afat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "2C",
+      "teacher": "Yasser Afat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Yasser Afat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Yasser Afat",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Yasser Afat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Yasser Afat",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Yasser Afat",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Yasser Afat",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Mohamed Orab",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Mohamed Orab",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "2A",
+      "teacher": "Mohamed Orab",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "2A",
+      "teacher": "Mohamed Orab",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Mohamed Orab",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Mohamed Orab",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Mohamed Orab",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Mohamed Orab",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Mohamed Orab",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Mohamed Orab",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Mohamed Orab",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Mohamed Orab",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Mohamed Orab",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "1B",
+      "teacher": "Mohamed Orab",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "2C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "1C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "1B",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "1B",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "2C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Refaai Talaat Refaai Talaat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Amira Osama",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Amira Osama",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Amira Osama",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Amira Osama",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Amira Osama",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "3A",
+      "teacher": "Amira Osama",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "2C",
+      "teacher": "Amira Osama",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Amira Osama",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Amira Osama",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "3A",
+      "teacher": "Amira Osama",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Kamel Reda",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "1C",
+      "teacher": "Kamel Reda",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Kamel Reda",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Kamel Reda",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Kamel Reda",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Kamel Reda",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Kamel Reda",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "2A",
+      "teacher": "Kamel Reda",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Kamel Reda",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Kamel Reda",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "1B",
+      "teacher": "Kamel Reda",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Kamel Reda",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Amany Adel",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "1B",
+      "teacher": "Amany Adel",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "3A",
+      "teacher": "Amany Adel",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 2,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Amany Adel",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Amany Adel",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "2A",
+      "teacher": "Amany Adel",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Amany Adel",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "1C",
+      "teacher": "Amany Adel",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Amany Adel",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "3A",
+      "teacher": "Amany Adel",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Mohamad Shams",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "2B",
+      "teacher": "Mohamad Shams",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Mohamad Shams",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "3A",
+      "teacher": "Mohamad Shams",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Mohamad Shams",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Mohamad Shams",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Mohamad Shams",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "2A",
+      "teacher": "Mohamad Shams",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Mohamad Shams",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Mohamad Shams",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Mohamad Shams",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Mohamad Shams",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Abdullah Mahdi",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Merona Sorour",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "3A",
+      "teacher": "Merona Sorour",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Merona Sorour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Merona Sorour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Merona Sorour",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "3B",
+      "teacher": "Merona Sorour",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Merona Sorour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Merona Sorour",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "3A",
+      "teacher": "Merona Sorour",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "3B",
+      "teacher": "Merona Sorour",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 1,
+      "className": "1C",
+      "teacher": "Mona Khalaf",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Mona Khalaf",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 1,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Mona Khalaf",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Mona Khalaf",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Mona Khalaf",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Mona Khalaf",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Mona Khalaf",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Mona Khalaf",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Mona Khalaf",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Mona Khalaf",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Zahraa Ali",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Zahraa Ali",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Zahraa Ali",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Zahraa Ali",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Zahraa Ali",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Zahraa Ali",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Zahraa Ali",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Zahraa Ali",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Zahraa Ali",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Zahraa Ali",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Samah Nagar",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Samah Nagar",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Samah Nagar",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Samah Nagar",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "3A",
+      "teacher": "Samah Nagar",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Samah Nagar",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 4,
+      "period": 1,
+      "className": "2B",
+      "teacher": "Samah Nagar",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Samah Nagar",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Samah Nagar",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Samah Nagar",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "1C",
+      "teacher": "Basem Hasan",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Basem Hasan",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 3,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Basem Hasan",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "3A",
+      "teacher": "Basem Hasan",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 5,
+      "period": 1,
+      "className": "1A",
+      "teacher": "Basem Hasan",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Amany Basiony",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Amany Basiony",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 3,
+      "period": 1,
+      "className": "2C",
+      "teacher": "Amany Basiony",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2A",
+      "teacher": "Amany Basiony",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Amany Basiony",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Amany Basiony",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Amany Basiony",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Hytham Makshat",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 2,
+      "period": 3,
+      "className": "1A",
+      "teacher": "Hytham Makshat",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "2B",
+      "teacher": "Hytham Makshat",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "2C",
+      "teacher": "Hytham Makshat",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Hytham Makshat",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "1C",
+      "teacher": "Hytham Makshat",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Mona Farouk",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Mona Farouk",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Mona Farouk",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Mona Farouk",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Mona Farouk",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Mona Farouk",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Mona Farouk",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Mona Farouk",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1A",
+      "teacher": "Mona Farouk",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Mona Farouk",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Mona Amar",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Mona Amar",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Mona Amar",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Mona Amar",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Mona Amar",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Mona Amar",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Mona Amar",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "3B",
+      "teacher": "Mona Amar",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Mona Amar",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Mona Amar",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Galal Khira",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Galal Khira",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Galal Khira",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Galal Khira",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Galal Khira",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Galal Khira",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Galal Khira",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Galal Khira",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Mahamed Romman",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Mahamed Romman",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Mahamed Romman",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Mahamed Romman",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Mahamed Romman",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Mahamed Romman",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Mahamed Romman",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Mahamed Romman",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Eman Fesal",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Eman Fesal",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Eman Fesal",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Eman Fesal",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Eman Fesal",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "className": "2B",
+      "teacher": "Eman Fesal",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Eman Fesal",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 4,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Eman Fesal",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Eman Fesal",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "3B",
+      "teacher": "Eman Fesal",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 2,
+      "className": "1A",
+      "teacher": "Eman Hamdy",
+      "raw": "1A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Eman Hamdy",
+      "raw": "1C"
+    },
+    {
+      "daySlot": 2,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Eman Hamdy",
+      "raw": "3B-S\n-M"
+    },
+    {
+      "daySlot": 3,
+      "period": 2,
+      "className": "1B",
+      "teacher": "Eman Hamdy",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 3,
+      "period": 3,
+      "className": "2C",
+      "teacher": "Eman Hamdy",
+      "raw": "2C"
+    },
+    {
+      "daySlot": 3,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Eman Hamdy",
+      "raw": "3A"
+    },
+    {
+      "daySlot": 4,
+      "period": 3,
+      "className": "2B",
+      "teacher": "Eman Hamdy",
+      "raw": "2B"
+    },
+    {
+      "daySlot": 5,
+      "period": 2,
+      "className": "2A",
+      "teacher": "Eman Hamdy",
+      "raw": "2A"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Rehab Zaid",
+      "raw": "3A/\n3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Rehab Zaid",
+      "raw": "3A/\n3B-S\n-M"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Rehab Zaid",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "className": "1B",
+      "teacher": "Rehab Zaid",
+      "raw": "1B"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Rehab Zaid",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Rehab Zaid",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Rehab Zaid",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Rehab Zaid",
+      "raw": "1A\n1B\n1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Rehab Zaid",
+      "raw": "1A\n1B\n1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Rehab Zaid",
+      "raw": "1A\n1B\n1C"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "3A",
+      "teacher": "Nemaa Ashour",
+      "raw": "3A/\n3B-S\n-M"
+    },
+    {
+      "daySlot": 1,
+      "period": 5,
+      "className": "3B",
+      "teacher": "Nemaa Ashour",
+      "raw": "3A/\n3B-S\n-M"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2A",
+      "teacher": "Nemaa Ashour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2B",
+      "teacher": "Nemaa Ashour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 4,
+      "className": "2C",
+      "teacher": "Nemaa Ashour",
+      "raw": "2A/\n2B/\n2C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1A",
+      "teacher": "Nemaa Ashour",
+      "raw": "1A/\n1B/\n1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1B",
+      "teacher": "Nemaa Ashour",
+      "raw": "1A/\n1B/\n1C"
+    },
+    {
+      "daySlot": 5,
+      "period": 5,
+      "className": "1C",
+      "teacher": "Nemaa Ashour",
+      "raw": "1A/\n1B/\n1C"
+    }
+  ],
+  "unmatched": [
+    {
+      "daySlot": 2,
+      "period": 2,
+      "teacher": "Tarek Olaimy",
+      "raw": "Leader s Cap2"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "teacher": "Tarek Olaimy",
+      "raw": "Leader s Cap2"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "teacher": "Amira Osama",
+      "raw": "Ceneral Cap"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "teacher": "Amira Osama",
+      "raw": "Ceneral Cap"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "teacher": "Amira Osama",
+      "raw": "Ceneral Cap"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "teacher": "Amira Osama",
+      "raw": "Ceneral Cap"
+    },
+    {
+      "daySlot": 2,
+      "period": 4,
+      "teacher": "Amany Adel",
+      "raw": "Leader s Cap1"
+    },
+    {
+      "daySlot": 4,
+      "period": 4,
+      "teacher": "Amany Adel",
+      "raw": "Leader s Cap1"
+    },
+    {
+      "daySlot": 2,
+      "period": 2,
+      "teacher": "Hytham Makshat",
+      "raw": "Leader s Cap3"
+    },
+    {
+      "daySlot": 4,
+      "period": 2,
+      "teacher": "Hytham Makshat",
+      "raw": "Leader s Cap3"
+    }
+  ]
+}

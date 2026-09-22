@@ -1,4 +1,4 @@
-import React,{ useEffect, useState } from "react";
+import React,{ useEffect, useRef, useState } from "react";
 
 import {
   Container,
@@ -22,7 +22,14 @@ import { callAPI } from "../api";
 
 function Monitor(){
 
+  const requestInFlight = useRef(false);
   const [rows,setRows] = useState([]);
+  const [asc,setAsc] = useState({rows:[],configured:false});
+  const [ascError,setAscError] = useState("");
+  const [monitorError,setMonitorError] = useState("");
+  const [monitorLastUpdated,setMonitorLastUpdated] = useState(null);
+  const [ascLastUpdated,setAscLastUpdated] = useState(null);
+  const [ascDebug,setAscDebug] = useState(null);
   const [registered,setRegistered] = useState([]);
   const [notRegistered,setNotRegistered] = useState([]);
   const [activeSession,setActiveSession] = useState(null);
@@ -38,7 +45,7 @@ function Monitor(){
     load();
 
     const timer =
-      setInterval(load,60000);
+      setInterval(load,120000);
 
     return ()=>clearInterval(timer);
 
@@ -50,10 +57,35 @@ function Monitor(){
   }
 
   async function load(){
-
+    if(requestInFlight.current)return;
+    requestInFlight.current=true;
+    setLoading(true);
     try{
-
-      setLoading(true);
+      const alerts=await callAPI("getAscAlerts");
+      const receivedAt=new Date().toLocaleString("en-GB");
+      const alertRows=Array.isArray(alerts?.rows)?alerts.rows:[];
+      const debug={
+        receivedAt,
+        success:alerts?.success,
+        activeSession:alerts?.activeSession,
+        late:alerts?.late,
+        missed:alerts?.missed,
+        lateRows:alertRows.filter(r=>r.status==="late").map(r=>({className:r.className,session:r.session})),
+        computedLate:alertRows.filter(r=>r.status==="late").length,
+        computedMissed:alertRows.filter(r=>r.status==="missed").length
+      };
+      console.log("ASC FRONTEND DEBUG",debug);
+      setAscDebug(debug);
+      if(alerts&&alerts.success){
+        setAsc(alerts);
+        setAscLastUpdated(receivedAt);
+        setAscError("");
+      }else setAscError(alerts?.error||"تعذر تحميل تنبيهات الجدول");
+    }catch(error){
+      console.error("ASC FRONTEND ERROR",error);
+      setAscError(error?.message||String(error));
+    }
+    try{
 
       const res =
         await callAPI("getMonitorData");
@@ -79,26 +111,21 @@ function Monitor(){
         setRegistered(Array.isArray(res.registered) ? res.registered : []);
         setNotRegistered(Array.isArray(res.notRegistered) ? res.notRegistered : []);
         setActiveSession(res.activeSession || null);
+        setMonitorLastUpdated(new Date().toLocaleString("en-GB"));
+        setMonitorError("");
 
       }else{
 
-        showMessage(
-          res && res.error
-            ? res.error
-            : "فشل تحميل المتابعة",
-          "error"
-        );
+        setMonitorError(res?.error || "فشل تحميل المتابعة");
 
       }
 
-      setLoading(false);
-
     }catch(error){
-
-      console.log(error);
+      console.error("getMonitorData",error);
+      setMonitorError(error?.message || String(error));
+    }finally{
       setLoading(false);
-      showMessage("خطأ في تحميل المتابعة","error");
-
+      requestInFlight.current=false;
     }
 
   }
@@ -205,7 +232,29 @@ function Monitor(){
   return(
 
     <Container maxWidth="xl" style={{marginTop:"20px"}}>
+      <Paper sx={{p:3,mb:3,border:"2px solid #1d4ed8",borderRadius:3}}>
+        <Typography variant="h5" sx={{mb:2,fontWeight:700}}>تنبيهات جدول aSc — مهلة 10 دقائق</Typography>
+        <Paper variant="outlined" sx={{p:1.5,mb:2,backgroundColor:"#eff6ff"}}>
+          <Typography variant="body2" sx={{fontWeight:700}}>تشخيص تنبيهات aSc</Typography>
+          <Typography variant="body2">آخر تحديث ناجح: {ascLastUpdated||"لم يكتمل بعد"}</Typography>
+          <Typography variant="body2">السشن النشطة من الخادم: {ascDebug?.activeSession??"غير متاحة"} | late من الخادم: {ascDebug?.late??"-"} | missed من الخادم: {ascDebug?.missed??"-"}</Typography>
+          <Typography variant="body2">المحسوب من الصفوف: late = {ascDebug?.computedLate??"-"} | missed = {ascDebug?.computedMissed??"-"}</Typography>
+          <Typography variant="caption">وقت استلام آخر استجابة: {ascDebug?.receivedAt||"-"} — التفاصيل في Console تحت ASC FRONTEND DEBUG.</Typography>
+        </Paper>
+        {ascError&&<Alert severity="warning" sx={{mb:1}}>تعذر تحديث تنبيهات aSc مؤقتًا؛ تُعرض آخر بيانات ناجحة ({ascLastUpdated || "لا توجد بيانات سابقة"}). التفاصيل: {ascError}</Alert>}
+        {!asc.configured&&<Alert severity="warning">استورد جدول aSc من صفحة إعداد جدول aSc وحدد مطابقة الأيام والحصص أولًا.</Alert>}
+        {asc.configured&&asc.message&&<Alert severity="info">{asc.message}</Alert>}
+        {asc.configured&&<Typography sx={{mb:2}}>تنبيهات السشن النشطة بعد المهلة: {(asc.rows||[]).filter(r=>r.status==="late").length} | لم يسجلوا بعد انتهاء السشن: {(asc.rows||[]).filter(r=>r.status==="missed").length}</Typography>}
+        {(asc.rows||[]).filter(r=>r.status==="late").map((r,i)=><Alert key={"active-"+i} severity={r.status==="late"?"error":"info"} sx={{mb:1}}>
+          الفصل {r.className} — Session {r.session} — المعلمون: {r.teachers.join("، ")} — تأخر تسجيل الغياب
+        </Alert>)}
+        {(asc.rows||[]).some(r=>r.status==="missed")&&<Typography variant="h6" sx={{mt:2,mb:1}}>السشن المنتهية دون تسجيل</Typography>}
+        {(asc.rows||[]).filter(r=>r.status==="missed").map((r,i)=><Alert key={"missed-"+i} severity="error" sx={{mb:1}}>
+          ❌ لم يتم التسجيل — الفصل {r.className} — Session {r.session} — المعلمون: {r.teachers.join("، ")}
+        </Alert>)}
+      </Paper>
 
+      {monitorError && <Alert severity="warning" sx={{mb:2}}>تعذر تحديث المتابعة مؤقتًا؛ تُعرض آخر بيانات ناجحة ({monitorLastUpdated || "لا توجد بيانات سابقة"}). التفاصيل: {monitorError}</Alert>}
       <Typography
         variant="h4"
         gutterBottom
@@ -214,7 +263,7 @@ function Monitor(){
           color:"#0f172a"
         }}
       >
-        متابعة تسجيل الغياب
+        متابعة تسجيل الغياب (الإحصاء العام السابق)
       </Typography>
 
       <Paper
@@ -286,7 +335,7 @@ function Monitor(){
                 حالة التحديث
               </Typography>
               <Typography variant="h5">
-                {loading ? "جاري التحديث..." : "محدث تلقائيًا"}
+                {loading ? "جاري التحديث..." : monitorError ? "تعذر التحديث" : monitorLastUpdated ? "آخر تحديث: " + monitorLastUpdated : "لم تُحمّل البيانات بعد"}
               </Typography>
             </CardContent>
           </Card>
