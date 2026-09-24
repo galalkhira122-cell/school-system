@@ -244,16 +244,16 @@ function Monitor(){
         {ascError&&<Alert severity="warning" sx={{mb:1}}>تعذر تحديث تنبيهات aSc مؤقتًا؛ تُعرض آخر بيانات ناجحة ({ascLastUpdated || "لا توجد بيانات سابقة"}). التفاصيل: {ascError}</Alert>}
         {!asc.configured&&<Alert severity="warning">استورد جدول aSc من صفحة إعداد جدول aSc وحدد مطابقة الأيام والحصص أولًا.</Alert>}
         {asc.configured&&asc.message&&<Alert severity="info">{asc.message}</Alert>}
-        {asc.configured&&<Typography sx={{mb:2}}>تم التسجيل: {(asc.rows||[]).filter(r=>r.status==="saved").length} | متأخر الآن: {(asc.rows||[]).filter(r=>r.status==="late").length} | لم يسجل بعد انتهاء السشن: {(asc.rows||[]).filter(r=>r.status==="missed").length} | قادم: {(asc.rows||[]).filter(r=>r.status==="upcoming").length}</Typography>}
+        {asc.configured&&<Typography sx={{mb:2}}>تم التسجيل: {(asc.rows||[]).filter(r=>r.status==="saved").length} | متأخر الآن: {(asc.rows||[]).filter(r=>r.status==="late").length} | لم يسجل بعد انتهاء السشن: {(asc.rows||[]).filter(r=>r.status==="missed").length}</Typography>}
         {(asc.rows||[]).filter(r=>r.status==="saved").map((r,i)=><Alert key={"saved-"+i} severity="success" sx={{mb:1}}>
-          ✅ تم التسجيل — الفصل {r.className} — Session {r.session} — المعلمون: {r.teachers.join("، ")}
+          ✅ تم التسجيل — الفصل {r.className} — Session {r.session} — المعلمون: {(r.teachers||[]).length ? r.teachers.join("، ") : "غير محدد في جدول aSc"}
         </Alert>)}
         {(asc.rows||[]).filter(r=>r.status==="late").map((r,i)=><Alert key={"active-"+i} severity={r.status==="late"?"error":"info"} sx={{mb:1}}>
-          الفصل {r.className} — Session {r.session} — المعلمون: {r.teachers.join("، ")} — تأخر تسجيل الغياب
+          الفصل {r.className} — Session {r.session} — المعلمون: {(r.teachers||[]).length ? r.teachers.join("، ") : "غير محدد في جدول aSc"} — تأخر تسجيل الغياب
         </Alert>)}
         {(asc.rows||[]).some(r=>r.status==="missed")&&<Typography variant="h6" sx={{mt:2,mb:1}}>السشن المنتهية دون تسجيل</Typography>}
         {(asc.rows||[]).filter(r=>r.status==="missed").map((r,i)=><Alert key={"missed-"+i} severity="error" sx={{mb:1}}>
-          ❌ لم يتم التسجيل — الفصل {r.className} — Session {r.session} — المعلمون: {r.teachers.join("، ")}
+          ❌ لم يتم التسجيل — الفصل {r.className} — Session {r.session} — المعلمون: {(r.teachers||[]).length ? r.teachers.join("، ") : "غير محدد في جدول aSc"}
         </Alert>)}
       </Paper>
 
