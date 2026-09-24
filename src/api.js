@@ -1,5 +1,5 @@
 const URL =
-  "https://script.google.com/macros/s/AKfycbxETARHlRAicTodFMn9Y2pm_bzXiuQTa6eaWAsLwI7RCpBvdXQ9gd2ZVP7unQIlm431/exec";
+  "https://script.google.com/macros/s/AKfycbxwd5ex_gtvXBl3gvywH-eC0FxaF-ZYTmUYRpMo7hoBKWC6xRsOnB8NaEjtKa79LG9_/exec";
 
 /**
  * Send an action to Google Apps Script. Keep the existing POST payload unchanged.
@@ -7,21 +7,29 @@ const URL =
  * than leaking an "Unexpected token '<'" parsing error.
  */
 // Retry only these read-only monitor requests. Never retry writes automatically.
-const MONITOR_READ_ACTIONS = new Set(["getAscAlerts", "getMonitorData"]);
+const MONITOR_READ_ACTIONS = new Set([
+  "getAttendanceInitData",
+  "getAttendanceStudentsFast",
+  "getStudents",
+  "getTodayStudentStatus",
+  "verifyAbsenceSave",
+  "getAscAlerts",
+  "getMonitorData",
+]);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function callAPI(action, data = {}) {
   if (MONITOR_READ_ACTIONS.has(action)) {
     let lastError;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         return await requestAPI(action, data);
       } catch (error) {
         lastError = error;
         // Retry only network errors and transient HTTP/redirect failures.
-        if (attempt === 1 || !error.retryable) break;
+        if (attempt === 2 || !error.retryable) break;
         console.warn(`[API RETRY] ${action}: retrying after transient failure`);
-        await delay(1200);
+        await delay(attempt === 0 ? 350 : 900);
       }
     }
     throw lastError;
@@ -60,9 +68,9 @@ async function requestAPI(action, data = {}) {
   if (!response.ok) {
     const html = /^\s*</.test(body) || /text\/html/i.test(contentType);
     const failure = new Error(
-      `فشل طلب ${action}: HTTP ${response.status}${html ? " — أعاد الخادم صفحة HTML بدل JSON؛ تحقق من نشر Apps Script وإعادة التوجيه وصلاحيات الوصول." : " — تحقق من حالة الخادم."}`
+      `فشل طلب ${action}: HTTP ${response.status}${html ? " — تعذر الاتصال بالخادم مؤقتًا وتم استلام صفحة HTML بدل البيانات." : " — تحقق من حالة الخادم."}`
     );
-    failure.retryable = [404, 408, 429, 500, 502, 503, 504].includes(response.status);
+    failure.retryable = [404, 408, 425, 429, 500, 502, 503, 504].includes(response.status);
     throw failure;
   }
 
@@ -76,7 +84,7 @@ async function requestAPI(action, data = {}) {
     const html = /^\s*</.test(body) || /text\/html/i.test(contentType);
     throw new Error(
       html
-        ? `استجابة غير صالحة لطلب ${action}: أعاد الخادم HTML بدل JSON (HTTP ${response.status}). تحقق من رابط النشر وإعادة التوجيه وصلاحيات الوصول.`
+        ? `استجابة غير صالحة لطلب ${action}: أعاد الخادم HTML بدل JSON (HTTP ${response.status}).`
         : `استجابة JSON غير صالحة لطلب ${action} (HTTP ${response.status}): ${error?.message || String(error)}`
     );
   }
