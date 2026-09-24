@@ -1,5 +1,5 @@
 const URL =
-  "https://script.google.com/macros/s/AKfycbxwd5ex_gtvXBl3gvywH-eC0FxaF-ZYTmUYRpMo7hoBKWC6xRsOnB8NaEjtKa79LG9_/exec";
+  "https://script.google.com/macros/s/AKfycbwyNkyWhX3t_jDqo7uODC0xYHqTa8qbgdp4FZoHUkJCiWPAsO33ytR3ulKvs4HhPOnB/exec";
 
 /**
  * Send an action to Google Apps Script. Keep the existing POST payload unchanged.
