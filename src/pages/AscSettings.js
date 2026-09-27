@@ -1,14 +1,76 @@
 import React,{useEffect,useRef,useState} from "react";
 import {Container,Paper,Typography,Button,TextField,MenuItem,Alert,Box} from "@mui/material";
+import * as XLSX from "xlsx";
 import {callAPI} from "../api";
 
 const weekdays=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const EN_DAYS={sunday:1,monday:2,tuesday:3,wednesday:4,thursday:5};
+
+function parseAscWorkbook(arrayBuffer){
+  const workbook=XLSX.read(arrayBuffer,{type:"array",cellDates:false});
+  const sheet=workbook.Sheets[workbook.SheetNames[0]];
+  if(!sheet)throw new Error("لم يتم العثور على ورقة داخل ملف Excel");
+
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+  if(rows.length<3)throw new Error("ملف الجدول لا يحتوي على بيانات كافية");
+
+  const dayByColumn={};
+  let currentDaySlot=null;
+  for(let c=0;c<(rows[0]||[]).length;c++){
+    const dayText=String(rows[0]?.[c]||"").trim().toLowerCase();
+    if(EN_DAYS[dayText])currentDaySlot=EN_DAYS[dayText];
+    if(currentDaySlot)dayByColumn[c]=currentDaySlot;
+  }
+
+  const periodByColumn={};
+  for(let c=0;c<(rows[1]||[]).length;c++){
+    const text=String(rows[1]?.[c]||"").trim();
+    if(/^break\b/i.test(text))continue;
+    const m=text.match(/^\s*([1-5])(?:\s|$)/);
+    if(m&&dayByColumn[c])periodByColumn[c]=Number(m[1]);
+  }
+
+  const records=[];
+  const unmatched=[];
+  const seen=new Set();
+
+  for(let r=2;r<rows.length;r++){
+    const teacher=String(rows[r]?.[0]||"").replace(/\s+/g," ").trim();
+    if(!teacher)continue;
+
+    Object.keys(periodByColumn).forEach(key=>{
+      const c=Number(key);
+      const raw=String(rows[r]?.[c]||"").trim();
+      if(!raw)return;
+
+      // خلايا aSc قد تحتوي مثل 3B-S-M أو 3A/3B-S-M.
+      // نلتقط أسماء الفصول فقط ونتجاهل النصوص الإدارية مثل Leader's Cap.
+      const normalized=raw.replace(/\r/g," ").replace(/\n/g," ");
+      const classes=normalized.match(/[123][A-D]/gi)||[];
+      const uniqueClasses=[...new Set(classes.map(x=>x.toUpperCase()))];
+
+      if(!uniqueClasses.length){
+        if(!/^break\b/i.test(raw))unmatched.push({daySlot:dayByColumn[c],period:periodByColumn[c],teacher,raw});
+        return;
+      }
+
+      uniqueClasses.forEach(className=>{
+        const rec={daySlot:dayByColumn[c],period:periodByColumn[c],className,teacher,raw};
+        const id=[rec.daySlot,rec.period,rec.className,rec.teacher].join("|");
+        if(!seen.has(id)){seen.add(id);records.push(rec);}
+      });
+    });
+  }
+
+  if(!records.length)throw new Error("لم يتم العثور على حصص صالحة في ملف aSc");
+  return {records,unmatched,sheetName:workbook.SheetNames[0]};
+}
 
 export default function AscSettings(){
  const [config,setConfig]=useState({days:{},periods:{},delay:10});
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
- const [selectedFile,setSelectedFile]=useState(null);
+ const [selectedFile,setSelectedFile]=useState("");
  const [timetable,setTimetable]=useState(null);
  const fileInputRef=useRef(null);
 
@@ -16,8 +78,9 @@ export default function AscSettings(){
  const update=(field,i,v)=>setConfig(old=>({...old,[field]:{...old[field],[i]:v}}));
 
  function chooseNewFile(){
-   // مهم: تصفير القيمة يضمن فتح/قراءة الملف من جديد حتى لو كان بنفس الاسم.
-   if(fileInputRef.current) fileInputRef.current.value="";
+   if(fileInputRef.current)fileInputRef.current.value="";
+   setSelectedFile("");
+   setTimetable(null);
    fileInputRef.current?.click();
  }
 
@@ -26,17 +89,16 @@ export default function AscSettings(){
    if(!file)return;
    setMessage("");
    setSelectedFile(file.name);
+   setTimetable(null);
    try{
-     const text=await file.text();
-     const parsed=JSON.parse(text);
-     const records=Array.isArray(parsed)?parsed:parsed.records;
-     const unmatched=Array.isArray(parsed?.unmatched)?parsed.unmatched:[];
-     if(!Array.isArray(records)||records.length===0)throw new Error("الملف لا يحتوي على records صالحة");
-     setTimetable({records,unmatched});
-     setMessage(`تم اختيار الجدول الجديد: ${file.name} — ${records.length} سجلًا. اضغط استيراد لإرساله إلى Google Sheets.`);
+     const ext=file.name.split(".").pop()?.toLowerCase();
+     if(!["xlsx","xls"].includes(ext))throw new Error("اختر ملف Excel بصيغة XLSX أو XLS");
+     const buffer=await file.arrayBuffer();
+     const parsed=parseAscWorkbook(buffer);
+     setTimetable(parsed);
+     setMessage(`تمت قراءة الجدول الجديد: ${file.name} — ${parsed.records.length} حصة صالحة. اضغط «استيراد الجدول الجديد» لإرساله إلى Google Sheets.`);
    }catch(err){
-     setTimetable(null);
-     setMessage("تعذر قراءة الجدول. اختر ملف JSON الخاص بجدول aSc بصيغة صحيحة.");
+     setMessage(err?.message||"تعذر قراءة ملف جدول aSc");
    }
  }
 
@@ -48,20 +110,22 @@ export default function AscSettings(){
 
  async function importTimetable(){
    if(!timetable?.records?.length){
-     setMessage("يجب اختيار ملف الجدول الجديد أولًا.");
+     setMessage("اختر ملف Excel الجديد أولًا.");
      chooseNewFile();
      return;
    }
    setBusy(true);
    try{
      const r=await callAPI("importAscTimetable",{records:timetable.records});
-     setMessage(r.success?`تم استيراد الجدول الجديد بنجاح (${r.count} سجلًا) من الملف: ${selectedFile}`:r.error||"فشل استيراد الجدول");
+     if(r?.success){
+       setMessage(`تم استبدال جدول ASC_Timetable بالجدول الجديد بنجاح — ${r.count} سجلًا من ${selectedFile}.`);
+     }else setMessage(r?.error||"فشل استيراد الجدول");
    }catch(e){setMessage(String(e));}finally{setBusy(false);}
  }
 
  return <Container maxWidth="md" sx={{mt:3,mb:5}} dir="rtl"><Paper sx={{p:3}}>
   <Typography variant="h5" gutterBottom>إعداد جدول aSc Timetables</Typography>
-  <Typography sx={{mb:2}}>عند تحديث الجدول يجب اختيار ملف الجدول الجديد من الجهاز. لا يتم استخدام أي جدول مرفق داخل البرنامج تلقائيًا.</Typography>
+  <Typography sx={{mb:2}}>في كل تحديث اختر ملف Excel الجديد من الجهاز. يتم قراءة تنسيق aSc الأصلي مباشرة، وتجاهل أعمدة Break، ثم استبدال بيانات ASC_Timetable بالجدول الجديد.</Typography>
   {message&&<Alert severity="info" sx={{mb:2}}>{message}</Alert>}
 
   <Typography variant="h6">ترتيب أيام ملف aSc</Typography>
@@ -71,13 +135,14 @@ export default function AscSettings(){
   {[1,2,3,4,5].map(i=><TextField key={i} select fullWidth margin="dense" label={"حصة aSc رقم "+i} value={config.periods?.[i]??""} onChange={e=>update("periods",i,e.target.value)}><MenuItem value="">غير مطابقة (لا تنبيه)</MenuItem>{[1,2,3,4,5].map(n=><MenuItem key={n} value={String(n)}>{"Session "+n}</MenuItem>)}</TextField>)}
 
   <Typography sx={{mt:2}}>المهلة: 10 دقائق. التنبيهات تظهر للإدارة فقط، مع جميع المعلمين المشتركين.</Typography>
-  <input ref={fileInputRef} type="file" accept=".json,application/json" onChange={onFileSelected} style={{display:"none"}} />
+  <input ref={fileInputRef} type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onChange={onFileSelected} style={{display:"none"}} />
   <Box sx={{display:"flex",gap:2,mt:2,flexWrap:"wrap"}}>
    <Button variant="contained" disabled={busy} onClick={saveSettings}>حفظ المطابقة</Button>
-   <Button variant="outlined" disabled={busy} onClick={chooseNewFile}>اختيار جدول جديد من الجهاز</Button>
+   <Button variant="outlined" disabled={busy} onClick={chooseNewFile}>اختيار جدول Excel جديد</Button>
    <Button variant="outlined" disabled={busy||!timetable} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
   </Box>
   {selectedFile&&<Typography sx={{mt:2}}><b>الملف المختار حاليًا:</b> {selectedFile}</Typography>}
-  {timetable?.unmatched?.length>0&&<details style={{marginTop:24}}><summary>خلايا لم يتم تفسيرها — لا تصدر تنبيهات ({timetable.unmatched.length})</summary><div style={{maxHeight:260,overflow:"auto"}}>{timetable.unmatched.map((r,i)=><p key={i}>اليوم {r.daySlot} / الحصة {r.period} / {r.teacher}: {r.raw}</p>)}</div></details>}
+  {timetable&&<Typography sx={{mt:1}}><b>الحصص التي سيتم استيرادها:</b> {timetable.records.length}</Typography>}
+  {timetable?.unmatched?.length>0&&<details style={{marginTop:24}}><summary>خلايا غير مرتبطة بفصل — لن تصدر تنبيهات ({timetable.unmatched.length})</summary><div style={{maxHeight:260,overflow:"auto"}}>{timetable.unmatched.map((r,i)=><p key={i}>اليوم {r.daySlot} / الحصة {r.period} / {r.teacher}: {r.raw}</p>)}</div></details>}
  </Paper></Container>;
 }
