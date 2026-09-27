@@ -172,6 +172,17 @@ function Attendance({ user }){
 
   }
 
+  function normalizeSession(session){
+    if(!session) return null;
+    const name = String(session.name || "").trim();
+    const match = name.match(/Session\s*([1-5])/i);
+    if(match) return {...session,id:Number(match[1]),name:name};
+    const rawId = Number(session.id);
+    const legacyMap = {1:1,2:2,4:3,5:4,7:5};
+    const logicalId = legacyMap[rawId] || ((rawId >= 1 && rawId <= 5) ? rawId : 0);
+    return logicalId ? {...session,id:logicalId,name:"Session " + logicalId} : null;
+  }
+
   async function loadData(){
 
     try{
@@ -197,7 +208,7 @@ function Attendance({ user }){
 
         setSessions(
           Array.isArray(res.schedule)
-            ? res.schedule
+            ? res.schedule.map(normalizeSession).filter(Boolean)
             : []
         );
 
@@ -208,7 +219,7 @@ function Attendance({ user }){
         }
 
         if(res.activeSession && res.activeSession.success){
-          setActiveSession(res.activeSession.session);
+          setActiveSession(normalizeSession(res.activeSession.session));
         }else{
           setActiveSession(null);
         }
@@ -304,7 +315,7 @@ function Attendance({ user }){
     if(saveInFlight.current)return;
     if(!selectedClass){showMessage("اختر الفصل","warning");return;}
     if(!teacher){showMessage("اختر المعلم","warning");return;}
-    const selectedSession=manualSession?sessions.find(x=>String(x.id)===String(manualSession)):activeSession;
+    const selectedSession=normalizeSession(manualSession?sessions.find(x=>String(x.id)===String(manualSession)):activeSession);
     if(!selectedSession){showMessage("لا توجد Session للحفظ","warning");return;}
     if(!students.length){showMessage("قم بتحميل الطلاب أولًا","warning");return;}
     const records=students.map(s=>({seat:String(s.seat).trim(),className:selectedClass,status:s.absent?"غ":"ح",teacher:teacher,sessionId:Number(selectedSession.id),sessionName:selectedSession.name}));
