@@ -118,7 +118,12 @@ export default function AscSettings(){
    try{
      const r=await callAPI("importAscTimetable",{records:timetable.records});
      if(r?.success){
-       setMessage(`تم استبدال جدول ASC_Timetable بالجدول الجديد بنجاح — ${r.count} سجلًا من ${selectedFile}.`);
+       const check=await callAPI("getAscTimetableInfo");
+       if(check?.success && Number(check.count)>0){
+         setMessage(`تم الاستيراد فعليًا إلى ASC_Timetable — ${check.count} سجلًا من ${selectedFile}. تم التحقق من وجود البيانات داخل Google Sheets.`);
+       }else{
+         setMessage("أعاد الخادم نجاح الاستيراد، لكن التحقق وجد ASC_Timetable فارغًا. أعد نشر ملف doGet.gs المرفق ثم حاول مرة أخرى.");
+       }
      }else setMessage(r?.error||"فشل استيراد الجدول");
    }catch(e){setMessage(String(e));}finally{setBusy(false);}
  }
