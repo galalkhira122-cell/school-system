@@ -440,13 +440,22 @@ function Attendance({ user }){
     setDateEditSessions([]);
     try{
       const year=academicYearForMonth(dateEditMonth);
-      const res=await callAPI("getStudentAttendanceByMonth",{
-        className:selectedClass,seat:dateEditSeat.trim(),month:dateEditMonth,year
+      const res=await callAPI("getStudentMonthAttendanceEdit",{
+        seat:dateEditSeat.trim(),month:dateEditMonth,year
       });
-      if(!res || !res.success) throw new Error(res?.error || "تعذر تحميل غياب الشهر");
-      setDateEditStudent(res.student);
-      setDateEditSessions(Array.isArray(res.days)?res.days:[]);
-      if(!res.days?.length) showMessage("لا توجد أيام غياب مسجلة لهذا الشهر في حصر الغياب","info");
+      if(!res || !res.success) throw new Error(res?.error || res?.message || "تعذر تحميل غياب الشهر");
+      const selectedCandidate=dateEditCandidates.find(s=>String(s.seat)===String(dateEditSeat.trim()));
+      setDateEditStudent({seat:dateEditSeat.trim(),name:selectedCandidate?.name || dateEditQuery.split(" — ")[0] || "",className:selectedClass});
+      const grouped={};
+      (Array.isArray(res.records)?res.records:[]).forEach(r=>{
+        const date=String(r.date||"");
+        if(!date) return;
+        if(!grouped[date]) grouped[date]=[];
+        grouped[date].push({rowIndex:Number(r.rowIndex||0),colIndex:Number(r.colIndex||0),sessionName:r.sessionName||"Session",status:String(r.status||"")});
+      });
+      const days=Object.keys(grouped).sort().map(date=>({date,sessions:grouped[date]}));
+      setDateEditSessions(days);
+      if(!days.length) showMessage("لا توجد أيام غياب مسجلة لهذا الشهر في حصر الغياب","info");
     }catch(error){showMessage(error.message || "فشل تحميل غياب الشهر","error");}
     finally{setDateEditBusy(false);}
   }
@@ -458,15 +467,16 @@ function Attendance({ user }){
   async function saveDateEdit(){
     if(!dateEditStudent || !dateEditSessions.length) return;
     const records=[];
-    dateEditSessions.forEach(day=>day.sessions.forEach(s=>records.push({date:day.date,colIndex:s.colIndex,status:s.status})));
+    dateEditSessions.forEach(day=>day.sessions.forEach(s=>records.push({
+      rowIndex:Number(s.rowIndex||0),colIndex:Number(s.colIndex||0),status:s.status,
+      seat:dateEditStudent.seat,date:day.date,sessionName:s.sessionName||"Session"
+    })));
     setDateEditBusy(true);
     try{
-      const res=await callAPI("saveStudentAttendanceByMonth",{
-        className:dateEditStudent.className,seat:dateEditStudent.seat,
-        month:dateEditMonth,year:academicYearForMonth(dateEditMonth),
-        userName:user?.username || "Admin",records
+      const res=await callAPI("updateStudentMonthAttendance",{
+        userName:user?.username || "Admin",studentName:dateEditStudent.name || "",records
       });
-      if(!res || !res.success) throw new Error(res?.error || "فشل حفظ التعديلات");
+      if(!res || !res.success) throw new Error(res?.error || res?.message || "فشل حفظ التعديلات");
       showMessage(res.message || "تم حفظ تعديلات الشهر بنجاح","success");
       loadTodaySummary();
       if(selectedClass) loadStudents();
