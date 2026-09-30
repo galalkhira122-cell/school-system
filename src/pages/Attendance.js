@@ -113,7 +113,7 @@ function Attendance({ user }){
 
   useEffect(()=>{
   // Do not compete with the initial class/teacher request on page open.
-  const first = setTimeout(loadTodaySummary,2500);
+  const first = setTimeout(loadTodaySummary,15000);
   const timer = setInterval(loadTodaySummary,120000);
   return ()=>{ clearTimeout(first); clearInterval(timer); };
 
@@ -182,73 +182,67 @@ function Attendance({ user }){
   }
 
   async function loadData(){
-
-    const CACHE_KEY = "attendance_init_browser_v4";
-    let hadCachedData = false;
-
-    // Show selectors immediately from the last successful response.
+    const CACHE_KEY = "attendance_init_browser_v5";
+    let cached = null;
+    // Migrate the already-populated V4 cache so selectors can appear immediately after this update.
     try{
-      const raw = localStorage.getItem(CACHE_KEY);
-      if(raw){
-        const cached = JSON.parse(raw);
-        if(cached && Array.isArray(cached.classes) && Array.isArray(cached.teachers)){
-          setClasses(cached.classes);
-          setTeachers(cached.teachers);
-          setSessions(Array.isArray(cached.schedule) ? cached.schedule.map(normalizeSession).filter(Boolean) : []);
-          setParentPhones(cached.parentPhones?.phones || {});
-          setActiveSession(cached.activeSession?.success ? normalizeSession(cached.activeSession.session) : null);
-          hadCachedData = true;
-        }
-      }
+      const raw = localStorage.getItem(CACHE_KEY) || localStorage.getItem("attendance_init_browser_v4");
+      if(raw) cached = JSON.parse(raw);
     }catch(_e){}
 
-    try{
-      // Only show the full-page loading state on the very first visit.
-      if(!hadCachedData) setLoading(true);
-      const res = await callAPI("getAttendanceInitData");
-
-      if(res && res.success){
-        const nextClasses = Array.isArray(res.classes) ? res.classes : [];
-        const nextTeachers = Array.isArray(res.teachers) ? res.teachers : [];
-        const nextSessions = Array.isArray(res.schedule) ? res.schedule.map(normalizeSession).filter(Boolean) : [];
-        setClasses(nextClasses);
-        setTeachers(nextTeachers);
-        setSessions(nextSessions);
-        setParentPhones(res.parentPhones?.success ? (res.parentPhones.phones || {}) : {});
-        setActiveSession(res.activeSession?.success ? normalizeSession(res.activeSession.session) : null);
-        try{ localStorage.setItem(CACHE_KEY, JSON.stringify(res)); }catch(_e){}
-      }else if(!hadCachedData){
-        showMessage(res?.error || "فشل تحميل البيانات","error");
-      }
-    }catch(error){
-      console.log(error);
-      if(!hadCachedData) showMessage("فشل تحميل البيانات: "+(error?.message||String(error)),"error");
-    }finally{
-      if(!hadCachedData) setLoading(false);
+    if(cached && Array.isArray(cached.classes) && Array.isArray(cached.teachers)){
+      setClasses(cached.classes);
+      setTeachers(cached.teachers);
+      setSessions(Array.isArray(cached.schedule)?cached.schedule.map(normalizeSession).filter(Boolean):[]);
+      setParentPhones(cached.parentPhones?.phones||{});
+      setActiveSession(cached.activeSession?.success?normalizeSession(cached.activeSession.session):null);
+      try{localStorage.setItem(CACHE_KEY,JSON.stringify(cached));}catch(_e){}
+      // Do NOT immediately start Apps Script in the background; that request was competing
+      // with the user's first student load. Static selectors can refresh next page visit/cache miss.
+      return;
     }
 
+    try{
+      setLoading(true);
+      const res=await callAPI("getAttendanceInitData");
+      if(res&&res.success){
+        setClasses(Array.isArray(res.classes)?res.classes:[]);
+        setTeachers(Array.isArray(res.teachers)?res.teachers:[]);
+        setSessions(Array.isArray(res.schedule)?res.schedule.map(normalizeSession).filter(Boolean):[]);
+        setParentPhones(res.parentPhones?.success?(res.parentPhones.phones||{}):{});
+        setActiveSession(res.activeSession?.success?normalizeSession(res.activeSession.session):null);
+        try{localStorage.setItem(CACHE_KEY,JSON.stringify(res));}catch(_e){}
+      }else showMessage(res?.error||"فشل تحميل البيانات","error");
+    }catch(error){
+      console.log(error); showMessage("فشل تحميل البيانات: "+(error?.message||String(error)),"error");
+    }finally{setLoading(false);}
   }
 
   async function loadStudents(){
     if(!selectedClass){showMessage("اختر الفصل أولًا","warning");return;}
-    setLoading(true);
+    const cacheKey="attendance_students_v5|"+[selectedClass,lang,section].join("|");
+    let hadCached=false;
+    try{
+      const raw=sessionStorage.getItem(cacheKey);
+      if(raw){
+        const cached=JSON.parse(raw);
+        if(Array.isArray(cached)&&cached.length){setStudents(cached);hadCached=true;}
+      }
+    }catch(_e){}
+    if(!hadCached)setLoading(true);
     const started=performance.now();
     try{
-      // One request only. Do not launch a 2-request fallback that makes a slow connection even slower.
       const response=await callAPI("getAttendanceStudentsFast",{className:selectedClass,lang,section});
-      if(!response?.success||!Array.isArray(response.students))
-        throw new Error(response?.error||"تعذر تحميل الطلاب");
-      const arr=response.students.map((s,index)=>({
-        id:index,seat:String(s.seat??"").trim(),name:s.name,sheetRow:Number(s.sheetRow||0),
-        absent:false,todayStatus:s.todayStatus||"لم يسجل"
-      }));
+      if(!response?.success||!Array.isArray(response.students)) throw new Error(response?.error||"تعذر تحميل الطلاب");
+      const arr=response.students.map((s,index)=>({id:index,seat:String(s.seat??"").trim(),name:s.name,sheetRow:Number(s.sheetRow||0),absent:false,todayStatus:s.todayStatus||"لم يسجل"}));
       setStudents(arr);
-      console.info("Attendance students loaded",arr.length,"in",Math.round(performance.now()-started),"ms",response.build||"");
+      try{sessionStorage.setItem(cacheKey,JSON.stringify(arr));}catch(_e){}
+      console.info("Attendance students loaded",arr.length,"in",Math.round(performance.now()-started),"ms",response.serverMs||"",response.build||"");
       if(!arr.length)showMessage("لا يوجد طلاب مطابقون للفصل والفلاتر المحددة","warning");
     }catch(error){
       console.error("Student loading failed",error);
-      showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
-    }finally{setLoading(false);}
+      if(!hadCached)showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
+    }finally{if(!hadCached)setLoading(false);}
   }
 
   function toggle(id){
