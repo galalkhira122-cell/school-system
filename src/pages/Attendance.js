@@ -89,7 +89,7 @@ function Attendance({ user }){
   const [openedWhatsApp,setOpenedWhatsApp] = useState([]);
 
   const [dateEditOpen,setDateEditOpen] = useState(false);
-  const [dateEditDate,setDateEditDate] = useState("");
+  const [dateEditMonth,setDateEditMonth] = useState(String(new Date().getMonth()+1).padStart(2,"0"));
   const [dateEditSeat,setDateEditSeat] = useState("");
   const [dateEditQuery,setDateEditQuery] = useState("");
   const [dateEditCandidates,setDateEditCandidates] = useState([]);
@@ -384,8 +384,22 @@ function Attendance({ user }){
       .toLowerCase();
   }
 
+  const attendanceMonths = [
+    {value:"09",label:"سبتمبر"},{value:"10",label:"أكتوبر"},{value:"11",label:"نوفمبر"},{value:"12",label:"ديسمبر"},
+    {value:"01",label:"يناير"},{value:"02",label:"فبراير"},{value:"03",label:"مارس"},{value:"04",label:"أبريل"},{value:"05",label:"مايو"}
+  ];
+
+  function academicYearForMonth(month){
+    const now=new Date();
+    const currentMonth=now.getMonth()+1;
+    const startYear=currentMonth>=9 ? now.getFullYear() : now.getFullYear()-1;
+    return Number(month)>=9 ? startYear : startYear+1;
+  }
+
   async function openDateEdit(){
     if(!selectedClass){showMessage("اختر الفصل أولًا", "warning");return;}
+    const currentMonth=String(new Date().getMonth()+1).padStart(2,"0");
+    setDateEditMonth(["09","10","11","12","01","02","03","04","05"].includes(currentMonth)?currentMonth:"09");
     setDateEditOpen(true);
     setDateEditQuery("");
     setDateEditSeat("");
@@ -418,37 +432,45 @@ function Attendance({ user }){
   }
 
   async function loadDateEdit(){
-    if(!selectedClass || !dateEditSeat.trim() || !dateEditDate){
-      showMessage("اختر الفصل والتاريخ وأدخل رقم جلوس الطالبة", "warning");return;
+    if(!selectedClass || !dateEditSeat.trim() || !dateEditMonth){
+      showMessage("اختر الفصل والشهر والطالبة", "warning");return;
     }
     setDateEditBusy(true);
     setDateEditStudent(null);
     setDateEditSessions([]);
     try{
-      const res=await callAPI("getStudentAttendanceByDate",{
-        className:selectedClass,seat:dateEditSeat.trim(),date:dateEditDate
+      const year=academicYearForMonth(dateEditMonth);
+      const res=await callAPI("getStudentAttendanceByMonth",{
+        className:selectedClass,seat:dateEditSeat.trim(),month:dateEditMonth,year
       });
-      if(!res || !res.success) throw new Error(res?.error || "تعذر تحميل الغياب");
+      if(!res || !res.success) throw new Error(res?.error || "تعذر تحميل غياب الشهر");
       setDateEditStudent(res.student);
-      setDateEditSessions(res.sessions || []);
-    }catch(error){showMessage(error.message || "فشل التحميل","error");}
+      setDateEditSessions(Array.isArray(res.days)?res.days:[]);
+      if(!res.days?.length) showMessage("لا توجد أيام غياب مسجلة لهذا الشهر في حصر الغياب","info");
+    }catch(error){showMessage(error.message || "فشل تحميل غياب الشهر","error");}
     finally{setDateEditBusy(false);}
+  }
+
+  function updateMonthEditStatus(dayIndex,sessionIndex,value){
+    setDateEditSessions(prev=>prev.map((day,di)=>di!==dayIndex?day:{...day,sessions:day.sessions.map((session,si)=>si===sessionIndex?{...session,status:value}:session)}));
   }
 
   async function saveDateEdit(){
     if(!dateEditStudent || !dateEditSessions.length) return;
+    const records=[];
+    dateEditSessions.forEach(day=>day.sessions.forEach(s=>records.push({date:day.date,colIndex:s.colIndex,status:s.status})));
     setDateEditBusy(true);
     try{
-      const res=await callAPI("saveStudentAttendanceByDate",{
-        className:dateEditStudent.className,seat:dateEditStudent.seat,date:dateEditDate,
-        userName:user?.username || "Admin",
-        records:dateEditSessions.map(s=>({colIndex:s.colIndex,status:s.status}))
+      const res=await callAPI("saveStudentAttendanceByMonth",{
+        className:dateEditStudent.className,seat:dateEditStudent.seat,
+        month:dateEditMonth,year:academicYearForMonth(dateEditMonth),
+        userName:user?.username || "Admin",records
       });
       if(!res || !res.success) throw new Error(res?.error || "فشل حفظ التعديلات");
-      showMessage(res.message || "تم الحفظ بنجاح","success");
-      setDateEditOpen(false);
+      showMessage(res.message || "تم حفظ تعديلات الشهر بنجاح","success");
       loadTodaySummary();
-      if(selectedClass) await loadStudents();
+      if(selectedClass) loadStudents();
+      await loadDateEdit();
     }catch(error){showMessage(error.message || "فشل الحفظ","error");}
     finally{setDateEditBusy(false);}
   }
@@ -1397,67 +1419,66 @@ function Attendance({ user }){
          <Button variant="contained" color="primary" size="large"
            style={{borderRadius:"12px",fontWeight:"bold",padding:"12px 24px",marginRight:"0px"}}
            onClick={openDateEdit}
-         >تعديل غياب بتاريخ محدد</Button>
+         >عرض / تعديل غياب الشهر</Button>
        )}
 
       </Box>
 
-       <Dialog open={dateEditOpen} onClose={()=>!dateEditBusy && setDateEditOpen(false)} maxWidth="md" fullWidth>
-         <DialogTitle>تعديل غياب طالبة بتاريخ محدد — {selectedClass || "اختر الفصل أولًا"}</DialogTitle>
+       <Dialog open={dateEditOpen} onClose={()=>!dateEditBusy && setDateEditOpen(false)} maxWidth="lg" fullWidth>
+         <DialogTitle>عرض وتعديل غياب الشهر — {selectedClass || "اختر الفصل أولًا"}</DialogTitle>
          <DialogContent>
-           <Alert severity="info" style={{marginBottom:16}}>يتم تعديل البيانات في ورقة حصر الغياب فقط، حسب رقم الجلوس والفصل والتاريخ.</Alert>
+           <Alert severity="info" style={{marginBottom:16}}>اختر الشهر والطالبة لعرض جميع أيام الغياب المسجلة من سبتمبر إلى مايو. يمكنك تعديل يوم واحد أو عدة أيام ثم حفظ كل التعديلات دفعة واحدة.</Alert>
            <Grid container spacing={2} style={{marginTop:4}}>
-             <Grid item xs={12} md={6}>
-               <TextField fullWidth label="التاريخ" type="date" value={dateEditDate}
-                 onChange={e=>{setDateEditDate(e.target.value);setDateEditStudent(null);setDateEditSessions([]);}}
-                 InputLabelProps={{shrink:true}} />
+             <Grid item xs={12} md={4}>
+               <FormControl fullWidth>
+                 <Select value={dateEditMonth} onChange={e=>{setDateEditMonth(e.target.value);setDateEditStudent(null);setDateEditSessions([]);}} displayEmpty>
+                   {attendanceMonths.map(m=><MenuItem key={m.value} value={m.value}>{m.label} {academicYearForMonth(m.value)}</MenuItem>)}
+                 </Select>
+               </FormControl>
              </Grid>
-             <Grid item xs={12} md={6}>
+             <Grid item xs={12} md={8}>
                <TextField fullWidth label="بحث برقم الجلوس أو اسم الطالبة" value={dateEditQuery}
                  onChange={e=>{setDateEditQuery(e.target.value);setDateEditSeat("");setDateEditStudent(null);setDateEditSessions([]);}}
                  helperText={dateEditSeat ? "تم اختيار رقم الجلوس: " + dateEditSeat : "اكتب أول الاسم أو جزءًا منه أو رقم الجلوس، ثم اختر الطالبة من النتائج"} />
              </Grid>
            </Grid>
-            {dateEditCandidatesBusy && <Alert severity="info" style={{marginTop:12}}>جارٍ تحميل أسماء الطالبات...</Alert>}
-            {!dateEditCandidatesBusy && dateEditQuery.trim() && !dateEditSeat && (
-              <Paper variant="outlined" style={{marginTop:12,maxHeight:240,overflowY:"auto"}}>
-                {matchingDateEditCandidates.length === 0 ? (
-                  <Alert severity="warning">لا توجد نتائج مطابقة. تحقق من الفصل أو جرّب جزءًا آخر من الاسم.</Alert>
-                ) : matchingDateEditCandidates.map((candidate,index)=>(
-                  <Button key={candidate.seat+"-"+index} fullWidth
-                    style={{justifyContent:"flex-start",textAlign:"right",padding:12}}
-                    onClick={()=>selectDateEditCandidate(candidate)}>
-                    {candidate.name} — رقم الجلوس: {candidate.seat}
-                  </Button>
-                ))}
-              </Paper>
-            )}
-            {dateEditSeat && <Alert severity="success" style={{marginTop:12}}>الطالبة المختارة: {dateEditQuery}</Alert>}
-           <Button variant="contained" style={{marginTop:16,marginBottom:16}} disabled={dateEditBusy || dateEditCandidatesBusy || !dateEditSeat || !dateEditDate} onClick={loadDateEdit}>
-             {dateEditBusy ? "جارٍ التنفيذ..." : "عرض الغياب المسجل"}
+           {dateEditCandidatesBusy && <Alert severity="info" style={{marginTop:12}}>جارٍ تحميل أسماء الطالبات...</Alert>}
+           {!dateEditCandidatesBusy && dateEditQuery.trim() && !dateEditSeat && (
+             <Paper variant="outlined" style={{marginTop:12,maxHeight:240,overflowY:"auto"}}>
+               {matchingDateEditCandidates.length === 0 ? <Alert severity="warning">لا توجد نتائج مطابقة.</Alert> : matchingDateEditCandidates.map((candidate,index)=>(
+                 <Button key={candidate.seat+"-"+index} fullWidth style={{justifyContent:"flex-start",textAlign:"right",padding:12}} onClick={()=>selectDateEditCandidate(candidate)}>
+                   {candidate.name} — رقم الجلوس: {candidate.seat}
+                 </Button>
+               ))}
+             </Paper>
+           )}
+           {dateEditSeat && <Alert severity="success" style={{marginTop:12}}>الطالبة المختارة: {dateEditQuery}</Alert>}
+           <Button variant="contained" style={{marginTop:16,marginBottom:16}} disabled={dateEditBusy || dateEditCandidatesBusy || !dateEditSeat || !dateEditMonth} onClick={loadDateEdit}>
+             {dateEditBusy ? "جارٍ التنفيذ..." : "عرض غياب الشهر"}
            </Button>
-           {dateEditStudent && <Typography variant="h6" gutterBottom>{dateEditStudent.name} — {dateEditStudent.seat}</Typography>}
-           {dateEditSessions.map((s,index)=>(
-             <Paper key={s.colIndex} style={{padding:12,marginBottom:10}}>
-               <Grid container spacing={2} alignItems="center">
-                 <Grid item xs={12} md={6}><Typography>{s.sessionName}</Typography></Grid>
-                 <Grid item xs={12} md={6}>
-                   <FormControl fullWidth><Select value={s.status} disabled={dateEditBusy}
-                     onChange={e=>setDateEditSessions(prev=>prev.map((item,i)=>i===index?{...item,status:e.target.value}:item))}>
-                     <MenuItem value="">فارغ</MenuItem>
-                     <MenuItem value="ح">حاضر</MenuItem>
-                     <MenuItem value="غ">غائب</MenuItem>
-                     <MenuItem value="مرضي">مرضي</MenuItem>
-                   </Select></FormControl>
-                 </Grid>
+           {dateEditStudent && <Typography variant="h6" gutterBottom>{dateEditStudent.name} — {dateEditStudent.seat} — {attendanceMonths.find(m=>m.value===dateEditMonth)?.label} {academicYearForMonth(dateEditMonth)}</Typography>}
+           {dateEditStudent && dateEditSessions.length===0 && <Alert severity="warning">لا توجد أيام مسجلة لهذا الشهر.</Alert>}
+           {dateEditSessions.map((day,dayIndex)=>(
+             <Paper key={day.date} elevation={2} style={{padding:14,marginBottom:14,borderRadius:14}}>
+               <Typography style={{fontWeight:"bold",fontSize:17,marginBottom:10}}>📅 {day.date} — الغياب: {day.sessions.filter(s=>s.status==="غ").length} جلسة</Typography>
+               <Grid container spacing={2}>
+                 {day.sessions.map((s,sessionIndex)=>(
+                   <Grid item xs={12} sm={6} md={4} key={day.date+"-"+s.colIndex}>
+                     <Paper variant="outlined" style={{padding:10,borderRadius:10,background:s.status==="غ"?"#ffebee":s.status==="ح"?"#e8f5e9":s.status==="مرضي"?"#fff3e0":"#f8fafc"}}>
+                       <Typography style={{fontWeight:"bold",marginBottom:7}}>{s.sessionName || "Session"}</Typography>
+                       <FormControl fullWidth><Select value={s.status || ""} disabled={dateEditBusy} onChange={e=>updateMonthEditStatus(dayIndex,sessionIndex,e.target.value)} displayEmpty>
+                         <MenuItem value="">فارغ</MenuItem><MenuItem value="ح">حاضر</MenuItem><MenuItem value="غ">غائب</MenuItem><MenuItem value="مرضي">مرضي</MenuItem>
+                       </Select></FormControl>
+                     </Paper>
+                   </Grid>
+                 ))}
                </Grid>
              </Paper>
            ))}
          </DialogContent>
          <DialogActions>
-           <Button disabled={dateEditBusy} onClick={()=>setDateEditOpen(false)}>إلغاء</Button>
-           <Button variant="contained" color="success" disabled={dateEditBusy || !dateEditStudent || !dateEditSessions.length}
-             onClick={saveDateEdit}>حفظ التعديلات</Button>
+           <Button disabled={dateEditBusy} onClick={()=>setDateEditOpen(false)}>إغلاق</Button>
+           <Button variant="contained" color="success" disabled={dateEditBusy || !dateEditStudent || !dateEditSessions.length} onClick={saveDateEdit}>حفظ كل التعديلات المعروضة</Button>
          </DialogActions>
        </Dialog>
 
