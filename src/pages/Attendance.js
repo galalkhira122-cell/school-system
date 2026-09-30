@@ -441,7 +441,7 @@ function Attendance({ user }){
     try{
       const year=academicYearForMonth(dateEditMonth);
       const res=await callAPI("getStudentMonthAttendanceEdit",{
-        seat:dateEditSeat.trim(),month:dateEditMonth,year
+        seat:dateEditSeat.trim(),className:selectedClass,month:dateEditMonth,year
       });
       if(!res || !res.success) throw new Error(res?.error || res?.message || "تعذر تحميل غياب الشهر");
       const selectedCandidate=dateEditCandidates.find(s=>String(s.seat)===String(dateEditSeat.trim()));
@@ -456,7 +456,7 @@ function Attendance({ user }){
       const days=Object.keys(grouped).sort().map(date=>({date,sessions:grouped[date]}));
       setDateEditSessions(days);
       if(!days.length) showMessage("لا توجد أيام غياب مسجلة لهذا الشهر في حصر الغياب","info");
-    }catch(error){showMessage(error.message || "فشل تحميل غياب الشهر","error");}
+    }catch(error){showMessage("فشل تحميل غياب الشهر: " + (error?.message || String(error)),"error");}
     finally{setDateEditBusy(false);}
   }
 
