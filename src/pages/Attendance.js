@@ -250,41 +250,19 @@ function Attendance({ user }){
   async function loadStudents(){
     if(!selectedClass){showMessage("اختر الفصل أولًا","warning");return;}
     setLoading(true);
-    const filters={className:selectedClass,lang,section};
+    const started=performance.now();
     try{
-      let arr;
-      try{
-        const response=await callAPI("getAttendanceStudentsFast",filters);
-        if(!response?.success||!Array.isArray(response.students))
-          throw new Error(response?.error||"استجابة تحميل الطلاب غير صالحة");
-        arr=response.students.map((s,index)=>({
-          id:index,seat:String(s.seat??"").trim(),name:s.name,
-          absent:false,todayStatus:s.todayStatus||"لم يسجل"
-        }));
-      }catch(fastError){
-        // Read-only fallback; NEVER retry any save operation.
-        console.warn("Fast student loading unavailable; using compatible read-only fallback",fastError);
-        const roster=await callAPI("getStudents",filters);
-        if(!Array.isArray(roster))throw new Error(roster?.error||"تعذر تحميل قائمة الطلاب بالمسار الاحتياطي");
-        let statuses=[];
-        let statusUnavailable=false;
-        try{
-          const result=await callAPI("getTodayStudentStatus",{className:selectedClass});
-          if(Array.isArray(result))statuses=result;
-          else if(Array.isArray(result?.result))statuses=result.result;
-          else if(Array.isArray(result?.students))statuses=result.students;
-          else statusUnavailable=true;
-        }catch(statusError){statusUnavailable=true;console.warn("Today status unavailable",statusError);}
-        const bySeat=new Map(statuses.map(item=>[String(item.seat??"").trim(),item.todayStatus||"لم يسجل"]));
-        arr=roster.map((s,index)=>({
-          id:index,seat:String(s.seat??"").trim(),name:s.name,
-          absent:false,todayStatus:statusUnavailable?"غير متاح":(bySeat.get(String(s.seat??"").trim())||"لم يسجل")
-        }));
-        showMessage(statusUnavailable?"تم تحميل الأسماء، لكن تعذر جلب حالة اليوم؛ لا تعتمد على الحالة المعروضة قبل مراجعتها.":"تم تحميل الطلاب بالمسار الاحتياطي؛ تحقق من نشر الدالة السريعة.","warning");
-      }
+      // One request only. Do not launch a 2-request fallback that makes a slow connection even slower.
+      const response=await callAPI("getAttendanceStudentsFast",{className:selectedClass,lang,section});
+      if(!response?.success||!Array.isArray(response.students))
+        throw new Error(response?.error||"تعذر تحميل الطلاب");
+      const arr=response.students.map((s,index)=>({
+        id:index,seat:String(s.seat??"").trim(),name:s.name,sheetRow:Number(s.sheetRow||0),
+        absent:false,todayStatus:s.todayStatus||"لم يسجل"
+      }));
       setStudents(arr);
-      if(arr.length===0)showMessage("لا يوجد طلاب مطابقون للفصل والفلاتر المحددة","warning");
-      else if(!arr.some(s=>s.todayStatus==="غير متاح"))console.info("Students loaded",arr.length);
+      console.info("Attendance students loaded",arr.length,"in",Math.round(performance.now()-started),"ms",response.build||"");
+      if(!arr.length)showMessage("لا يوجد طلاب مطابقون للفصل والفلاتر المحددة","warning");
     }catch(error){
       console.error("Student loading failed",error);
       showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
@@ -318,7 +296,7 @@ function Attendance({ user }){
     const selectedSession=normalizeSession(manualSession?sessions.find(x=>String(x.id)===String(manualSession)):activeSession);
     if(!selectedSession){showMessage("لا توجد Session للحفظ","warning");return;}
     if(!students.length){showMessage("قم بتحميل الطلاب أولًا","warning");return;}
-    const records=students.map(s=>({seat:String(s.seat).trim(),className:selectedClass,status:s.absent?"غ":"ح",teacher:teacher,sessionId:Number(selectedSession.id),sessionName:selectedSession.name}));
+    const records=students.map(s=>({seat:String(s.seat).trim(),sheetRow:Number(s.sheetRow||0),className:selectedClass,status:s.absent?"غ":"ح",teacher:teacher,sessionId:Number(selectedSession.id),sessionName:selectedSession.name}));
     saveInFlight.current=true;
     setSaving(true);
     try{
