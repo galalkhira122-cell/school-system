@@ -453,7 +453,7 @@ function Attendance({ user }){
         if(!grouped[date]) grouped[date]=[];
         grouped[date].push({rowIndex:Number(r.rowIndex||0),colIndex:Number(r.colIndex||0),sessionName:r.sessionName||"Session",status:String(r.status||"")});
       });
-      const days=Object.keys(grouped).sort().map(date=>({date,sessions:grouped[date]}));
+      const days=Object.keys(grouped).sort().map(date=>({date,sessions:grouped[date]})).filter(day=>day.sessions.some(s=>String(s.status||"").trim()==="غ"));
       setDateEditSessions(days);
       if(!days.length) showMessage("لا توجد أيام غياب مسجلة لهذا الشهر في حصر الغياب","info");
     }catch(error){showMessage("فشل تحميل غياب الشهر: " + (error?.message || String(error)),"error");}
