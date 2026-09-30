@@ -112,12 +112,10 @@ function Attendance({ user }){
   },[]);
 
   useEffect(()=>{
-  loadTodaySummary();
-
-  const timer =
-    setInterval(loadTodaySummary,120000);
-
-  return ()=>clearInterval(timer);
+  // Do not compete with the initial class/teacher request on page open.
+  const first = setTimeout(loadTodaySummary,2500);
+  const timer = setInterval(loadTodaySummary,120000);
+  return ()=>{ clearTimeout(first); clearInterval(timer); };
 
 },[]);
 
@@ -185,64 +183,48 @@ function Attendance({ user }){
 
   async function loadData(){
 
+    const CACHE_KEY = "attendance_init_browser_v4";
+    let hadCachedData = false;
+
+    // Show selectors immediately from the last successful response.
     try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      if(raw){
+        const cached = JSON.parse(raw);
+        if(cached && Array.isArray(cached.classes) && Array.isArray(cached.teachers)){
+          setClasses(cached.classes);
+          setTeachers(cached.teachers);
+          setSessions(Array.isArray(cached.schedule) ? cached.schedule.map(normalizeSession).filter(Boolean) : []);
+          setParentPhones(cached.parentPhones?.phones || {});
+          setActiveSession(cached.activeSession?.success ? normalizeSession(cached.activeSession.session) : null);
+          hadCachedData = true;
+        }
+      }
+    }catch(_e){}
 
-      setLoading(true);
-
-      const res =
-        await callAPI("getAttendanceInitData");
+    try{
+      // Only show the full-page loading state on the very first visit.
+      if(!hadCachedData) setLoading(true);
+      const res = await callAPI("getAttendanceInitData");
 
       if(res && res.success){
-
-        setClasses(
-          Array.isArray(res.classes)
-            ? res.classes
-            : []
-        );
-
-        setTeachers(
-          Array.isArray(res.teachers)
-            ? res.teachers
-            : []
-        );
-
-        setSessions(
-          Array.isArray(res.schedule)
-            ? res.schedule.map(normalizeSession).filter(Boolean)
-            : []
-        );
-
-        if(res.parentPhones && res.parentPhones.success){
-          setParentPhones(res.parentPhones.phones || {});
-        }else{
-          setParentPhones({});
-        }
-
-        if(res.activeSession && res.activeSession.success){
-          setActiveSession(normalizeSession(res.activeSession.session));
-        }else{
-          setActiveSession(null);
-        }
-
-      }else{
-
-        showMessage(
-          res && res.error
-            ? res.error
-            : "فشل تحميل البيانات",
-          "error"
-        );
-
+        const nextClasses = Array.isArray(res.classes) ? res.classes : [];
+        const nextTeachers = Array.isArray(res.teachers) ? res.teachers : [];
+        const nextSessions = Array.isArray(res.schedule) ? res.schedule.map(normalizeSession).filter(Boolean) : [];
+        setClasses(nextClasses);
+        setTeachers(nextTeachers);
+        setSessions(nextSessions);
+        setParentPhones(res.parentPhones?.success ? (res.parentPhones.phones || {}) : {});
+        setActiveSession(res.activeSession?.success ? normalizeSession(res.activeSession.session) : null);
+        try{ localStorage.setItem(CACHE_KEY, JSON.stringify(res)); }catch(_e){}
+      }else if(!hadCachedData){
+        showMessage(res?.error || "فشل تحميل البيانات","error");
       }
-
-      setLoading(false);
-
     }catch(error){
-
       console.log(error);
-      setLoading(false);
-      showMessage("فشل تحميل البيانات: "+(error?.message||String(error)),"error");
-
+      if(!hadCachedData) showMessage("فشل تحميل البيانات: "+(error?.message||String(error)),"error");
+    }finally{
+      if(!hadCachedData) setLoading(false);
     }
 
   }
