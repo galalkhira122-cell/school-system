@@ -220,13 +220,15 @@ function Attendance({ user }){
 
   async function loadStudents(){
     if(!selectedClass){showMessage("اختر الفصل أولًا","warning");return;}
-    const cacheKey="attendance_students_v5|"+[selectedClass,lang,section].join("|");
+    const cacheKey="attendance_students_v7_2|"+[selectedClass,lang,section].join("|");
     let hadCached=false;
     try{
       const raw=sessionStorage.getItem(cacheKey);
       if(raw){
         const cached=JSON.parse(raw);
-        if(Array.isArray(cached)&&cached.length){setStudents(cached);hadCached=true;}
+        const validCached=Array.isArray(cached)&&cached.length&&cached.every(s=>Number.isInteger(Number(s.sheetRow))&&Number(s.sheetRow)>=8);
+        if(validCached){setStudents(cached);hadCached=true;}
+        else sessionStorage.removeItem(cacheKey);
       }
     }catch(_e){}
     if(!hadCached)setLoading(true);
