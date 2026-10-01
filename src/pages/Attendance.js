@@ -112,6 +112,15 @@ function Attendance({ user }){
   },[]);
 
   useEffect(()=>{
+    // Keep the active Session synchronized as the school day moves between periods.
+    const refreshActiveSession=()=>callAPI("getActiveSession")
+      .then(res=>setActiveSession(res?.success?normalizeSession(res.session):null))
+      .catch(()=>{});
+    const timer=setInterval(refreshActiveSession,60000);
+    return ()=>clearInterval(timer);
+  },[]);
+
+  useEffect(()=>{
   // Do not compete with the initial class/teacher request on page open.
   const first = setTimeout(loadTodaySummary,15000);
   const timer = setInterval(loadTodaySummary,120000);
@@ -197,8 +206,11 @@ function Attendance({ user }){
       setParentPhones(cached.parentPhones?.phones||{});
       setActiveSession(cached.activeSession?.success?normalizeSession(cached.activeSession.session):null);
       try{localStorage.setItem(CACHE_KEY,JSON.stringify(cached));}catch(_e){}
-      // Do NOT immediately start Apps Script in the background; that request was competing
-      // with the user's first student load. Static selectors can refresh next page visit/cache miss.
+      // Static selectors come from browser cache immediately, but Active Session is time-sensitive.
+      // Refresh only the tiny active-session request; do not reload classes/teachers here.
+      callAPI("getActiveSession").then(res=>{
+        setActiveSession(res?.success?normalizeSession(res.session):null);
+      }).catch(()=>{});
       return;
     }
 
