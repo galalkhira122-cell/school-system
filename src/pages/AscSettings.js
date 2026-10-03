@@ -144,7 +144,7 @@ export default function AscSettings(){
   <Box sx={{display:"flex",gap:2,mt:2,flexWrap:"wrap"}}>
    <Button variant="contained" disabled={busy} onClick={saveSettings}>حفظ المطابقة</Button>
    <Button variant="outlined" disabled={busy} onClick={chooseNewFile}>اختيار جدول Excel جديد</Button>
-   <Button variant="outlined" disabled={busy||!timetable} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
+   <Button variant="outlined" disabled={busy||!(timetable?.records?.length>0)} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
   </Box>
   {selectedFile&&<Typography sx={{mt:2}}><b>الملف المختار حاليًا:</b> {selectedFile}</Typography>}
   {timetable&&<Typography sx={{mt:1}}><b>الحصص التي سيتم استيرادها:</b> {timetable.records.length}</Typography>}
