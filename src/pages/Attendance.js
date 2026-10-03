@@ -232,17 +232,25 @@ function Attendance({ user }){
 
   async function loadStudents(){
     if(!selectedClass){showMessage("اختر الفصل أولًا","warning");return;}
-    const cacheKey="attendance_students_v7_2|"+[selectedClass,lang,section].join("|");
+    // Persistent browser cache: show the class immediately on repeat visits.
+    // A live refresh runs in the background and updates today's status without blocking the button.
+    const cacheKey="attendance_students_v8_fast|"+[selectedClass,lang,section].join("|");
     let hadCached=false;
     try{
-      const raw=sessionStorage.getItem(cacheKey);
+      const raw=localStorage.getItem(cacheKey) || sessionStorage.getItem(cacheKey);
       if(raw){
         const cached=JSON.parse(raw);
         const validCached=Array.isArray(cached)&&cached.length&&cached.every(s=>Number.isInteger(Number(s.sheetRow))&&Number(s.sheetRow)>=8);
-        if(validCached){setStudents(cached);hadCached=true;}
-        else sessionStorage.removeItem(cacheKey);
+        if(validCached){
+          setStudents(cached);
+          hadCached=true;
+        }else{
+          localStorage.removeItem(cacheKey);
+          sessionStorage.removeItem(cacheKey);
+        }
       }
     }catch(_e){}
+
     if(!hadCached)setLoading(true);
     const started=performance.now();
     try{
@@ -250,13 +258,19 @@ function Attendance({ user }){
       if(!response?.success||!Array.isArray(response.students)) throw new Error(response?.error||"تعذر تحميل الطلاب");
       const arr=response.students.map((s,index)=>({id:index,seat:String(s.seat??"").trim(),name:s.name,sheetRow:Number(s.sheetRow||0),absent:false,todayStatus:s.todayStatus||"لم يسجل"}));
       setStudents(arr);
-      try{sessionStorage.setItem(cacheKey,JSON.stringify(arr));}catch(_e){}
+      try{
+        const packed=JSON.stringify(arr);
+        localStorage.setItem(cacheKey,packed);
+        sessionStorage.setItem(cacheKey,packed);
+      }catch(_e){}
       console.info("Attendance students loaded",arr.length,"in",Math.round(performance.now()-started),"ms",response.serverMs||"",response.build||"");
       if(!arr.length)showMessage("لا يوجد طلاب مطابقون للفصل والفلاتر المحددة","warning");
     }catch(error){
       console.error("Student loading failed",error);
       if(!hadCached)showMessage("فشل تحميل الطلاب: "+(error?.message||String(error)),"error");
-    }finally{if(!hadCached)setLoading(false);}
+    }finally{
+      if(!hadCached)setLoading(false);
+    }
   }
 
   function toggle(id){
