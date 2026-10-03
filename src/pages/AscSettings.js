@@ -12,68 +12,69 @@ function parseAscWorkbook(arrayBuffer){
   if(!sheet)throw new Error("لم يتم العثور على ورقة داخل ملف Excel");
 
   const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
-  if(rows.length<3)throw new Error("ملف الجدول لا يحتوي على بيانات كافية");
+  if(rows.length<2)throw new Error("ملف الجدول لا يحتوي على بيانات كافية");
 
-  // بعض ملفات aSc (ومنها جدول عام جديد.xlsx) لا تحتوي أسماء الأيام في الصف الأول.
-  // نكتشف صف أرقام الحصص تلقائياً، ثم نعتبر كل ظهور جديد للحصة 1 بداية يوم جديد.
-  let headerRow=-1;
-  let bestScore=0;
-  for(let r=0;r<Math.min(rows.length,10);r++){
-    let score=0;
-    for(let c=0;c<(rows[r]||[]).length;c++){
-      const text=String(rows[r]?.[c]||"").trim();
-      if(/^\s*[1-5](?:\s|$)/.test(text) || /^break\s*[12]?\b/i.test(text))score++;
-    }
-    if(score>bestScore){bestScore=score;headerRow=r;}
-  }
-  if(headerRow<0 || bestScore<5)throw new Error("تعذر العثور على صف الحصص في ملف aSc");
-
+  // ملف aSc الحقيقي يضع رؤوس الحصص في الصف الأول، وبعض الحصص تمتد على
+  // عمودين بسبب Merge. لذلك نُمرّر رقم الحصة على الأعمدة الفارغة حتى
+  // نصل إلى الرأس التالي. كل ظهور جديد للحصة 1 يعني بداية يوم جديد.
   const periodByColumn={};
-  let currentDaySlot=0;
-  for(let c=0;c<(rows[headerRow]||[]).length;c++){
-    const text=String(rows[headerRow]?.[c]||"").trim();
-    if(/^break\b/i.test(text))continue;
-    const m=text.match(/^\s*([1-5])(?:\s|$)/);
-    if(!m)continue;
-    const period=Number(m[1]);
-    if(period===1)currentDaySlot++;
-    if(currentDaySlot>=1 && currentDaySlot<=5)periodByColumn[c]={daySlot:currentDaySlot,period};
+  const dayByColumn={};
+  let daySlot=0;
+  let currentPeriod=null;
+  const header=rows[0]||[];
+
+  for(let c=0;c<header.length;c++){
+    const text=String(header[c]||"").replace(/\r/g," ").trim();
+    if(text){
+      if(/^\s*1(?:\s|$)/.test(text))daySlot++;
+      if(/^\s*break\b/i.test(text)){
+        currentPeriod=null;
+      }else{
+        const m=text.match(/^\s*([1-5])(?:\s|$)/);
+        currentPeriod=m?Number(m[1]):null;
+      }
+    }
+    if(daySlot>=1 && daySlot<=5 && currentPeriod){
+      dayByColumn[c]=daySlot;
+      periodByColumn[c]=currentPeriod;
+    }
   }
 
-  const detectedDays=Math.max(0,...Object.values(periodByColumn).map(x=>x.daySlot));
-  if(detectedDays<1 || !Object.keys(periodByColumn).length)throw new Error("لم يتم اكتشاف أيام وحصص صالحة في ملف aSc");
+  if(daySlot<5)throw new Error("تعذر اكتشاف أيام الجدول الخمسة من صف الحصص");
 
   const records=[];
   const unmatched=[];
   const seen=new Set();
-  for(let r=headerRow+1;r<rows.length;r++){
+
+  // أول مدرس يبدأ من الصف الثاني في Excel = rows[1].
+  for(let r=1;r<rows.length;r++){
     const teacher=String(rows[r]?.[0]||"").replace(/\s+/g," ").trim();
     if(!teacher)continue;
 
     Object.keys(periodByColumn).forEach(key=>{
       const c=Number(key);
-      const slot=periodByColumn[c];
       const raw=String(rows[r]?.[c]||"").trim();
       if(!raw)return;
 
       const normalized=raw.replace(/\r/g," ").replace(/\n/g," ");
       const classes=normalized.match(/[123][A-D]/gi)||[];
       const uniqueClasses=[...new Set(classes.map(x=>x.toUpperCase()))];
+
       if(!uniqueClasses.length){
-        unmatched.push({daySlot:slot.daySlot,period:slot.period,teacher,raw});
+        if(!/^break\b/i.test(raw))unmatched.push({daySlot:dayByColumn[c],period:periodByColumn[c],teacher,raw});
         return;
       }
 
       uniqueClasses.forEach(className=>{
-        const rec={daySlot:slot.daySlot,period:slot.period,className,teacher,raw};
+        const rec={daySlot:dayByColumn[c],period:periodByColumn[c],className,teacher,raw};
         const id=[rec.daySlot,rec.period,rec.className,rec.teacher].join("|");
         if(!seen.has(id)){seen.add(id);records.push(rec);}
       });
     });
   }
 
-  if(!records.length)throw new Error("تمت قراءة الملف ولكن لم يتم العثور على حصص مرتبطة بفصول 1A إلى 3D");
-  return {records,unmatched,sheetName:workbook.SheetNames[0],headerRow:headerRow+1,detectedDays};
+  if(!records.length)throw new Error("لم يتم العثور على حصص صالحة في ملف aSc");
+  return {records,unmatched,sheetName:workbook.SheetNames[0]};
 }
 
 export default function AscSettings(){
@@ -106,7 +107,7 @@ export default function AscSettings(){
      const buffer=await file.arrayBuffer();
      const parsed=parseAscWorkbook(buffer);
      setTimetable(parsed);
-     setMessage(`تمت قراءة الجدول الجديد: ${file.name} — ${parsed.records.length} حصة صالحة — ${parsed.detectedDays} أيام. زر «استيراد الجدول الجديد إلى Google Sheets» أصبح جاهزًا.`);
+     setMessage(`تمت قراءة الجدول الجديد: ${file.name} — ${parsed.records.length} حصة صالحة. اضغط «استيراد الجدول الجديد» لإرساله إلى Google Sheets.`);
    }catch(err){
      setMessage(err?.message||"تعذر قراءة ملف جدول aSc");
    }
@@ -154,7 +155,7 @@ export default function AscSettings(){
   <Box sx={{display:"flex",gap:2,mt:2,flexWrap:"wrap"}}>
    <Button variant="contained" disabled={busy} onClick={saveSettings}>حفظ المطابقة</Button>
    <Button variant="outlined" disabled={busy} onClick={chooseNewFile}>اختيار جدول Excel جديد</Button>
-   <Button variant="outlined" disabled={busy||!(timetable?.records?.length>0)} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
+   <Button variant="outlined" disabled={busy||!timetable} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
   </Box>
   {selectedFile&&<Typography sx={{mt:2}}><b>الملف المختار حاليًا:</b> {selectedFile}</Typography>}
   {timetable&&<Typography sx={{mt:1}}><b>الحصص التي سيتم استيرادها:</b> {timetable.records.length}</Typography>}
