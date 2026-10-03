@@ -14,27 +14,48 @@ function parseAscWorkbook(arrayBuffer){
   const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
   if(rows.length<3)throw new Error("ملف الجدول لا يحتوي على بيانات كافية");
 
-  const dayByColumn={};
-  let currentDaySlot=null;
-  for(let c=0;c<(rows[0]||[]).length;c++){
-    const dayText=String(rows[0]?.[c]||"").trim().toLowerCase();
-    if(EN_DAYS[dayText])currentDaySlot=EN_DAYS[dayText];
-    if(currentDaySlot)dayByColumn[c]=currentDaySlot;
+  // بعض ملفات aSc (ومنها الملف الحالي) يكون صف أسماء الأيام فارغًا،
+  // بينما صف أرقام الحصص موجود. لذلك نكتشف صف الحصص أولًا ثم نستنتج
+  // اليوم من تكرار الحصة رقم 1 بدل الاعتماد الإجباري على أسماء الأيام.
+  let periodHeaderRow=-1;
+  let bestHeaderScore=0;
+  for(let r=0;r<Math.min(rows.length,6);r++){
+    let score=0;
+    for(let c=0;c<(rows[r]||[]).length;c++){
+      const text=String(rows[r]?.[c]||"").trim();
+      if(/^break\s*[12]\b/i.test(text) || /^\s*[1-5](?:\s|$)/.test(text))score++;
+    }
+    if(score>bestHeaderScore){bestHeaderScore=score;periodHeaderRow=r;}
   }
+  if(periodHeaderRow<0 || bestHeaderScore<5)throw new Error("تعذر تحديد صف الحصص داخل ملف aSc");
 
+  const dayByColumn={};
   const periodByColumn={};
-  for(let c=0;c<(rows[1]||[]).length;c++){
-    const text=String(rows[1]?.[c]||"").trim();
+  let inferredDaySlot=0;
+  let previousPeriod=0;
+
+  for(let c=0;c<(rows[periodHeaderRow]||[]).length;c++){
+    const text=String(rows[periodHeaderRow]?.[c]||"").trim();
+    if(!text)continue;
     if(/^break\b/i.test(text))continue;
     const m=text.match(/^\s*([1-5])(?:\s|$)/);
-    if(m&&dayByColumn[c])periodByColumn[c]=Number(m[1]);
+    if(!m)continue;
+    const period=Number(m[1]);
+    if(period===1 && (inferredDaySlot===0 || previousPeriod!==1))inferredDaySlot++;
+    if(inferredDaySlot<1)inferredDaySlot=1;
+    if(inferredDaySlot>5)continue;
+    dayByColumn[c]=inferredDaySlot;
+    periodByColumn[c]=period;
+    previousPeriod=period;
   }
+
+  if(!Object.keys(periodByColumn).length)throw new Error("لم يتم العثور على أعمدة Sessions داخل ملف aSc");
 
   const records=[];
   const unmatched=[];
   const seen=new Set();
 
-  for(let r=2;r<rows.length;r++){
+  for(let r=periodHeaderRow+1;r<rows.length;r++){
     const teacher=String(rows[r]?.[0]||"").replace(/\s+/g," ").trim();
     if(!teacher)continue;
 
@@ -43,8 +64,6 @@ function parseAscWorkbook(arrayBuffer){
       const raw=String(rows[r]?.[c]||"").trim();
       if(!raw)return;
 
-      // خلايا aSc قد تحتوي مثل 3B-S-M أو 3A/3B-S-M.
-      // نلتقط أسماء الفصول فقط ونتجاهل النصوص الإدارية مثل Leader's Cap.
       const normalized=raw.replace(/\r/g," ").replace(/\n/g," ");
       const classes=normalized.match(/[123][A-D]/gi)||[];
       const uniqueClasses=[...new Set(classes.map(x=>x.toUpperCase()))];
@@ -63,7 +82,7 @@ function parseAscWorkbook(arrayBuffer){
   }
 
   if(!records.length)throw new Error("لم يتم العثور على حصص صالحة في ملف aSc");
-  return {records,unmatched,sheetName:workbook.SheetNames[0]};
+  return {records,unmatched,sheetName:workbook.SheetNames[0],periodHeaderRow:periodHeaderRow+1};
 }
 
 export default function AscSettings(){
@@ -144,7 +163,7 @@ export default function AscSettings(){
   <Box sx={{display:"flex",gap:2,mt:2,flexWrap:"wrap"}}>
    <Button variant="contained" disabled={busy} onClick={saveSettings}>حفظ المطابقة</Button>
    <Button variant="outlined" disabled={busy} onClick={chooseNewFile}>اختيار جدول Excel جديد</Button>
-   <Button variant="outlined" disabled={busy||!(timetable?.records?.length>0)} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
+   <Button variant="outlined" disabled={busy||!timetable?.records?.length} onClick={importTimetable}>استيراد الجدول الجديد إلى Google Sheets</Button>
   </Box>
   {selectedFile&&<Typography sx={{mt:2}}><b>الملف المختار حاليًا:</b> {selectedFile}</Typography>}
   {timetable&&<Typography sx={{mt:1}}><b>الحصص التي سيتم استيرادها:</b> {timetable.records.length}</Typography>}
