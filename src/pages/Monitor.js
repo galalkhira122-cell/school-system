@@ -14,7 +14,8 @@ import {
   Box,
   FormControl,
   Select,
-  MenuItem
+  MenuItem,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
 
 import { DataGrid } from "@mui/x-data-grid";
@@ -33,6 +34,13 @@ function Monitor(){
   const [registered,setRegistered] = useState([]);
   const [notRegistered,setNotRegistered] = useState([]);
   const [activeSession,setActiveSession] = useState(null);
+  const [ticker,setTicker] = useState([]);
+  const [reportOpen,setReportOpen] = useState(false);
+  const [reportType,setReportType] = useState("daily");
+  const [reportDate,setReportDate] = useState(new Date().toLocaleDateString("en-CA"));
+  const [report,setReport] = useState(null);
+  const [reportBusy,setReportBusy] = useState(false);
+
 
   const [filter,setFilter] = useState("all");
   const [loading,setLoading] = useState(false);
@@ -128,6 +136,38 @@ function Monitor(){
       requestInFlight.current=false;
     }
 
+  }
+
+  useEffect(()=>{
+    const refresh=()=>callAPI("getTodayAbsenceSummary").then(data=>{
+      const arr=Array.isArray(data)?data:Array.isArray(data?.result)?data.result:[];
+      setTicker(arr.filter(x=>Number(x.count||0)>0));
+    }).catch(()=>{});
+    const first=setTimeout(refresh,5000);
+    const timer=setInterval(refresh,120000);
+    return ()=>{clearTimeout(first);clearInterval(timer);};
+  },[]);
+
+  async function openReport(type){
+    setReportType(type);setReportOpen(true);setReport(null);
+    await fetchReport(type,reportDate);
+  }
+  async function fetchReport(type,date){
+    setReportBusy(true);
+    try{
+      const res=await callAPI("getTeacherRegistrationReport",{type,date});
+      if(!res?.success)throw new Error(res?.error||"تعذر إنشاء التقرير");
+      setReport(res);
+    }catch(e){setReport(null);showMessage(e.message||String(e),"error");}
+    finally{setReportBusy(false);}
+  }
+  function printReport(){
+    if(!report)return;
+    const escape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    const rows=report.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escape(r.date)}</td><td>${escape(r.teacher)}</td><td>${escape(r.className)}</td><td>${escape("Session "+r.session)}</td><td>${escape(r.status)}</td><td>${escape(r.actualTeacher)}</td></tr>`).join("");
+    const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير تسجيل المعلمين</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,Tahoma,sans-serif}h2,p{text-align:center}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #333;padding:6px;text-align:center}th{background:#eee}thead{display:table-header-group}</style></head><body><h2>${reportType==="daily"?"التقرير اليومي":"التقرير الأسبوعي"} لتسجيل المعلمين</h2><p>المصدر: ${escape(report.source)} — التاريخ: ${escape(reportDate)} — الجلسات غير المسجلة: ${report.summary.missing}</p><table><thead><tr><th>م</th><th>التاريخ</th><th>المعلم المسؤول</th><th>الفصل</th><th>الجلسة</th><th>الحالة</th><th>المعلم المسجل فعليًا</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=()=>window.print()</script></body></html>`;
+    const win=window.open("","_blank");if(!win){showMessage("اسمح بالنوافذ المنبثقة للطباعة","warning");return;}
+    win.document.open();win.document.write(html);win.document.close();
   }
 
   function copyAlert(row){
@@ -232,6 +272,37 @@ function Monitor(){
   return(
 
     <Container maxWidth="xl" style={{marginTop:"20px"}}>
+      <Paper elevation={4} sx={{mb:2,p:1.5,borderRadius:3,background:"linear-gradient(90deg,#0f172a,#1e293b)",color:"white",overflow:"hidden"}}>
+        <Box sx={{display:"flex",alignItems:"center",gap:2}}>
+          <Typography sx={{fontWeight:800,whiteSpace:"nowrap",color:"#fca5a5"}}>🚨 أخبار الغياب</Typography>
+          <Box sx={{flex:1,overflow:"hidden",whiteSpace:"nowrap"}}>
+            <Box sx={{display:"inline-block",animation:"monitorTicker 24s linear infinite"}}>
+              {ticker.length?ticker.map((r,i)=><Chip key={i} label={`${r.className} — ${r.count} غياب`} color="error" sx={{mx:1}}/>):"لا يوجد غياب مسجل اليوم"}
+            </Box>
+          </Box>
+        </Box>
+        <style>{`@keyframes monitorTicker {from{transform:translateX(100%)}to{transform:translateX(-100%)}}`}</style>
+      </Paper>
+      <Box sx={{display:"flex",gap:2,mb:2,flexWrap:"wrap"}}>
+        <Button variant="contained" color="error" onClick={()=>openReport("daily")}>تقرير المعلمين اليومي</Button>
+        <Button variant="contained" color="primary" onClick={()=>openReport("weekly")}>تقرير المعلمين الأسبوعي</Button>
+      </Box>
+      <Dialog open={reportOpen} onClose={()=>!reportBusy&&setReportOpen(false)} maxWidth="xl" fullWidth>
+        <DialogTitle>{reportType==="daily"?"تقرير تسجيل المعلمين اليومي — Sheet1":"تقرير تسجيل المعلمين الأسبوعي — حفظ الغياب اليومي"}</DialogTitle>
+        <DialogContent>
+          <Box sx={{display:"flex",gap:2,my:2,alignItems:"center",flexWrap:"wrap"}}>
+            <TextField label={reportType==="daily"?"التاريخ":"أي يوم من الأسبوع المطلوب"} type="date" value={reportDate} onChange={e=>setReportDate(e.target.value)} InputLabelProps={{shrink:true}}/>
+            <Button variant="contained" disabled={reportBusy} onClick={()=>fetchReport(reportType,reportDate)}>عرض التقرير</Button>
+          </Box>
+          {reportBusy&&<Alert severity="info">جارٍ إعداد التقرير...</Alert>}
+          {report&&<>
+            <Alert severity="info" sx={{mb:2}}>المصدر: {report.source} — الجلسات المطلوبة: {report.summary.expected} — المسجلة: {report.summary.registered} — غير المسجلة: {report.summary.missing} — سجلها معلم آخر: {report.summary.mismatch} — دون اسم معلم: {report.summary.unknown||0}</Alert>
+            <Box sx={{overflowX:"auto",maxHeight:510}}><table style={{width:"100%",borderCollapse:"collapse",direction:"rtl"}}><thead><tr>{["التاريخ","المعلم المسؤول","الفصل","الجلسة","الحالة","المعلم المسجل فعليًا"].map(h=><th key={h} style={{padding:8,border:"1px solid #ddd"}}>{h}</th>)}</tr></thead><tbody>{report.rows.map((r,i)=><tr key={i} style={{background:r.status==="لم يسجل"?"#fee2e2":r.status==="سجل معلم آخر"?"#fef3c7":"transparent"}}>{[r.date,r.teacher,r.className,"Session "+r.session,r.status,r.actualTeacher].map((v,j)=><td key={j} style={{padding:8,border:"1px solid #ddd"}}>{v}</td>)}</tr>)}</tbody></table></Box>
+          </>}
+        </DialogContent>
+        <DialogActions><Button disabled={!report||reportBusy} onClick={printReport}>طباعة / PDF</Button><Button onClick={()=>setReportOpen(false)}>إغلاق</Button></DialogActions>
+      </Dialog>
+
       <Paper sx={{p:3,mb:3,border:"2px solid #1d4ed8",borderRadius:3}}>
         <Typography variant="h5" sx={{mb:2,fontWeight:700}}>تنبيهات جدول aSc — مهلة 10 دقائق</Typography>
         <Paper variant="outlined" sx={{p:1.5,mb:2,backgroundColor:"#eff6ff"}}>
