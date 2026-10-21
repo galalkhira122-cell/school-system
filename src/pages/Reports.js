@@ -169,9 +169,11 @@ function Reports(){
               name:r.name,
               className:r.className,
               totalAbsence:r.totalAbsence,
+              totalSick:r.totalSick || 0,
               dates:Array.isArray(r.dates)
                 ? r.dates.join(" - ")
-                : ""
+                : "",
+              statusDetails:r.statusDetails || ""
             }))
           : [];
 
@@ -219,8 +221,9 @@ function Reports(){
           "رقم الجلوس":r.seat,
           "اسم الطالبة":r.name,
           "الفصل":r.className,
-          "عدد الغياب":r.totalAbsence,
-          "تواريخ الغياب":r.dates
+          "عدد الغياب (غ)":r.totalAbsence,
+          "عدد مرضي":r.totalSick,
+          "تواريخ وحالات الغياب":r.statusDetails || r.dates
         }));
 
     }
@@ -242,7 +245,8 @@ function Reports(){
             { wch:35 },
             { wch:12 },
             { wch:14 },
-            { wch:60 }
+            { wch:14 },
+            { wch:70 }
           ];
 
     const workbook =
@@ -500,8 +504,9 @@ function Reports(){
     { field:"seat", headerName:"رقم", width:90 },
     { field:"name", headerName:"اسم الطالبة", flex:1, minWidth:220 },
     { field:"className", headerName:"الفصل", width:100 },
-    { field:"totalAbsence", headerName:"عدد الغياب", width:120 },
-    { field:"dates", headerName:"تواريخ الغياب", flex:1, minWidth:350 }
+    { field:"totalAbsence", headerName:"عدد الغياب (غ)", width:135 },
+    { field:"totalSick", headerName:"عدد مرضي", width:115 },
+    { field:"statusDetails", headerName:"تواريخ وحالات الغياب", flex:1, minWidth:350 }
   ];
 
   return(
