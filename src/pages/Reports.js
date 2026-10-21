@@ -314,7 +314,7 @@ function Reports(){
       const tableHeaders =
         reportType === "daily"
           ? ["رقم الجلوس","اسم الطالبة","الفصل","الحالة","التاريخ"]
-          : ["رقم الجلوس","اسم الطالبة","الفصل","عدد الغياب","تواريخ الغياب"];
+          : ["رقم الجلوس","اسم الطالبة","الفصل","عدد أيام الغياب (غ)","عدد أيام مرضي","تواريخ وحالات الغياب"];
 
       const tableRows =
         rows.map(r=>{
@@ -333,7 +333,8 @@ function Reports(){
             r.name || "",
             r.className || "",
             r.totalAbsence || 0,
-            r.dates || ""
+            r.totalSick || 0,
+            r.statusDetails || r.dates || ""
           ];
         });
 
