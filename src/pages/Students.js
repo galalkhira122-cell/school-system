@@ -11,6 +11,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { callAPI } from "../api";
 
 function LabelBox({title,children}) {
+  return (
     <Box>
       <Typography
         variant="subtitle1"
@@ -24,7 +25,19 @@ function LabelBox({title,children}) {
       </Typography>
       {children}
     </Box>
-  ;
+  );
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "")
+    .toLocaleLowerCase("ar")
+    .normalize("NFD")
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/ـ/g, "")
+    .trim();
 }
 
 function Students(){
@@ -466,14 +479,15 @@ function Students(){
 
   }
 
-  const filteredStudents =
-    students.filter((s)=>{
-      return (
-        String(s.name || "").toLowerCase().includes(search.toLowerCase()) ||
-        String(s.seat || "").includes(search) ||
-        String(s.code || "").includes(search)
-      );
-    });
+  const normalizedSearch = normalizeSearchText(search);
+  const filteredStudents = students.filter((s) => {
+    if (!normalizedSearch) return true;
+    return (
+      normalizeSearchText(s.name).includes(normalizedSearch) ||
+      normalizeSearchText(s.seat).includes(normalizedSearch) ||
+      normalizeSearchText(s.code).includes(normalizedSearch)
+    );
+  });
 
   const columns = [
 
