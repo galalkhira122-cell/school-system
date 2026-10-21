@@ -10,6 +10,23 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { callAPI } from "../api";
 
+function LabelBox({title,children}) {
+    <Box>
+      <Typography
+        variant="subtitle1"
+        style={{
+          fontWeight:"bold",
+          marginBottom:"6px",
+          color:"#1e293b"
+        }}
+      >
+        {title}
+      </Typography>
+      {children}
+    </Box>
+  ;
+}
+
 function Students(){
 
   const [classes,setClasses] = useState([]);
@@ -52,21 +69,7 @@ function Students(){
     setMsgType(type || "success");
   }
 
-  const LabelBox = ({title,children}) => (
-    <Box>
-      <Typography
-        variant="subtitle1"
-        style={{
-          fontWeight:"bold",
-          marginBottom:"6px",
-          color:"#1e293b"
-        }}
-      >
-        {title}
-      </Typography>
-      {children}
-    </Box>
-  );
+
 
   async function loadClasses(){
 
@@ -336,22 +339,10 @@ function Students(){
       await callAPI(
         "getStudentMonthAttendanceEdit",
         {
-          seat:String(
-            attendanceStudent.seat || ""
-          ).trim(),
-
-          className:String(
-            attendanceStudent.className || selectedClass || ""
-          ).trim(),
-
-          month:String(
-            attendanceMonth || ""
-          ).padStart(2,"0"),
-
-          year:String(
-            attendanceYear ||
-            new Date().getFullYear()
-          )
+          seat:String(attendanceStudent.seat || "").trim(),
+          className:String(attendanceStudent.className || selectedClass || "").trim(),
+          month:String(Number(attendanceMonth || 0)).padStart(2,"0"),
+          year:String(Number(attendanceYear || new Date().getFullYear()))
         }
       );
 
@@ -439,8 +430,6 @@ function Students(){
 
     studentName:
       attendanceStudent ? attendanceStudent.name : "",
-    className:
-      attendanceStudent ? String(attendanceStudent.className || selectedClass || "").trim() : "",
 
     records:
       attendanceRecords.map(r=>({
@@ -477,27 +466,12 @@ function Students(){
 
   }
 
-  // Normalize Arabic spelling variants for more forgiving name search.
-  function normalizeStudentSearch(value){
-    return String(value || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\\u064B-\\u065F\\u0670\\u0640]/g,"")
-      .replace(/[أإآٱ]/g,"ا")
-      .replace(/[ىي]/g,"ي")
-      .replace(/ة/g,"ه")
-      .replace(/[ؤئ]/g,"ء")
-      .trim();
-  }
-
-  const normalizedSearch = normalizeStudentSearch(search);
   const filteredStudents =
     students.filter((s)=>{
       return (
-        !normalizedSearch ||
-        normalizeStudentSearch(s.name).includes(normalizedSearch) ||
-        normalizeStudentSearch(s.seat).includes(normalizedSearch) ||
-        normalizeStudentSearch(s.code).includes(normalizedSearch)
+        String(s.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        String(s.seat || "").includes(search) ||
+        String(s.code || "").includes(search)
       );
     });
 
