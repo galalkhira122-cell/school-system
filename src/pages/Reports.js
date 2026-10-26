@@ -272,217 +272,73 @@ function Reports(){
   }
 
   async function exportPDF(){
-
-    if(rows.length === 0){
+    if(rows.length === 0 && reportType !== "daily"){
       showMessage("لا توجد بيانات للتصدير","warning");
       return;
     }
-
+    let container;
     try{
-
-      const container = document.createElement("div");
-
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      container.style.width = "1200px";
-      container.style.padding = "25px";
-      container.style.background = "#ffffff";
-      container.style.direction = "rtl";
-      container.style.fontFamily = "Arial, Tahoma, sans-serif";
-      container.style.color = "#111827";
-
-      const title =
-        reportType === "daily"
-          ? "تقرير الغياب اليومي"
-          : "تقرير الغياب الشهري";
-
-      const classText =
-        selectedClass === "all"
-          ? "كل الفصول"
-          : selectedClass;
-
-      const periodText =
-        reportType === "daily"
-          ? "التاريخ: " + date
-          : "الشهر: " + (
-              months.find(m=>m.value === month)
-                ? months.find(m=>m.value === month).label
-                : month
-            );
-
-      const tableHeaders =
-        reportType === "daily"
-          ? ["رقم الجلوس","اسم الطالبة","الفصل","الحالة","التاريخ"]
-          : ["رقم الجلوس","اسم الطالبة","الفصل","عدد أيام الغياب (غ)","عدد أيام مرضي","تواريخ وحالات الغياب"];
-
-      const tableRows =
-        rows.map(r=>{
-          if(reportType === "daily"){
-            return [
-              r.seat || "",
-              r.name || "",
-              r.className || "",
-              r.status || "",
-              r.date || ""
-            ];
-          }
-
-          return [
-            r.seat || "",
-            r.name || "",
-            r.className || "",
-            r.totalAbsence || 0,
-            r.totalSick || 0,
-            r.statusDetails || r.dates || ""
-          ];
+      container = document.createElement("div");
+      Object.assign(container.style, {
+        position:"fixed", left:"-20000px", top:"0", width:"1400px", padding:"28px",
+        background:"#fff", direction:"rtl", fontFamily:"Arial,Tahoma,sans-serif", color:"#111827",
+        boxSizing:"border-box"
+      });
+      const title = reportType === "daily" ? "تقرير الغياب اليومي" : "تقرير الغياب الشهري";
+      const classText = selectedClass === "all" ? "كل الفصول" : selectedClass;
+      const periodText = reportType === "daily" ? `التاريخ: ${date}` : `الشهر: ${(months.find(m=>m.value===month)||{}).label || month}`;
+      let tableHtml = "";
+      if(reportType === "daily"){
+        const summaryRows = await callAPI("getDailyReport",{
+          date:convertDateToSheetFormat(date), className:selectedClass, summary:true
         });
-
-      container.innerHTML = `
-        <div style="width:100%;direction:rtl;text-align:right;">
-          <h2 style="
-            text-align:center;
-            margin:0 0 14px 0;
-            font-size:26px;
-            color:#0f172a;
-          ">
-            ${title}
-          </h2>
-
-          <div style="
-            display:flex;
-            justify-content:space-between;
-            gap:12px;
-            margin-bottom:16px;
-            font-size:16px;
-            font-weight:bold;
-          ">
-            <div>الفصل: ${classText}</div>
-            <div>${periodText}</div>
-            <div>عدد النتائج: ${rows.length}</div>
-          </div>
-
-          <table style="
-            width:100%;
-            border-collapse:collapse;
-            font-size:14px;
-            direction:rtl;
-          ">
-            <thead>
-              <tr>
-                ${tableHeaders.map(h=>`
-                  <th style="
-                    border:1px solid #333;
-                    padding:8px;
-                    background:#e5e7eb;
-                    text-align:center;
-                    font-weight:bold;
-                  ">
-                    ${h}
-                  </th>
-                `).join("")}
-              </tr>
-            </thead>
-
-            <tbody>
-              ${tableRows.map(row=>`
-                <tr>
-                  ${row.map(cell=>`
-                    <td style="
-                      border:1px solid #333;
-                      padding:8px;
-                      text-align:center;
-                      vertical-align:middle;
-                    ">
-                      ${cell}
-                    </td>
-                  `).join("")}
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-
-      document.body.appendChild(container);
-
-      const canvas = await html2canvas(container,{
-        scale:2,
-        useCORS:true,
-        backgroundColor:"#ffffff"
-      });
-
-      document.body.removeChild(container);
-
-      const imgData =
-        canvas.toDataURL("image/png");
-
-      const pdf = new jsPDF({
-        orientation:"landscape",
-        unit:"mm",
-        format:"a4"
-      });
-
-      const pageWidth =
-        pdf.internal.pageSize.getWidth();
-
-      const pageHeight =
-        pdf.internal.pageSize.getHeight();
-
-      const margin = 10;
-      const imgWidth = pageWidth - margin * 2;
-      const imgHeight =
-        canvas.height * imgWidth / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = margin;
-
-      pdf.addImage(
-        imgData,
-        "PNG",
-        margin,
-        position,
-        imgWidth,
-        imgHeight
-      );
-
-      heightLeft -= pageHeight - margin * 2;
-
-      while(heightLeft > 0){
-
-        pdf.addPage();
-
-        position =
-          heightLeft - imgHeight + margin;
-
-        pdf.addImage(
-          imgData,
-          "PNG",
-          margin,
-          position,
-          imgWidth,
-          imgHeight
-        );
-
-        heightLeft -= pageHeight - margin * 2;
-
+        const ordered = (Array.isArray(summaryRows) ? summaryRows : []).map(r=>({
+          className:r.className, registered:Number(r.classRegistered||0),
+          present:Number(r.classPresent||0), absent:Number(r.classAbsent||0), names:r.absentNames||""
+        })).sort((a,b)=>String(a.className).localeCompare(String(b.className),"en",{numeric:true}));
+        if(!ordered.length) throw new Error("لا توجد بيانات جلسات لهذا التاريخ");
+        tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:17px;direction:rtl">
+          <thead><tr>${["م","الفصل","مقيد","حاضر","غائب","أسماء الغائبين"].map((h,i)=>`<th style="border:1px solid #222;padding:10px;background:#e9edf2;text-align:center;width:${[5,12,10,10,10,53][i]}%">${h}</th>`).join("")}</tr></thead>
+          <tbody>${ordered.map((r,i)=>`<tr>${[i+1,r.className,r.registered,r.present,r.absent,r.names||"لا يوجد"].map((v,j)=>`<td style="border:1px solid #222;padding:10px;text-align:${j===5?'right':'center'};vertical-align:middle;overflow-wrap:anywhere">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+      }else{
+        const headers = ["رقم الجلوس","اسم الطالبة","الفصل","عدد أيام الغياب (غ)","عدد أيام مرضي","تواريخ وحالات الغياب"];
+        tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:14px;direction:rtl"><thead><tr>${headers.map(h=>`<th style="border:1px solid #333;padding:8px;background:#e5e7eb;text-align:center">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${[r.seat||"",r.name||"",r.className||"",r.totalAbsence||0,r.totalSick||0,r.statusDetails||r.dates||""].map(v=>`<td style="border:1px solid #333;padding:8px;text-align:center;vertical-align:middle">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
       }
-
-      pdf.save(
-        reportType === "daily"
-          ? "daily-report.pdf"
-          : "monthly-report.pdf"
-      );
-
+      const officialHeader = reportType === "daily" ? `
+        <div style="display:grid;grid-template-columns:1fr 150px 1fr;gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px">
+          <div dir="ltr" style="text-align:left;font-size:19px;line-height:1.8;font-weight:bold">
+            <div>Ministry of Education</div><div>Central Unit of STEM Schools</div><div>Menofia STEM School</div>
+          </div>
+          <div style="text-align:center;border:2px solid #64748b;border-radius:50%;width:120px;height:120px;margin:auto;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:bold;color:#334155">STEM<br/>MENOFIA</div>
+          <div dir="rtl" style="text-align:right;font-size:19px;line-height:1.8;font-weight:bold">
+            <div>وزارة التربية والتعليم</div><div>الوحدة المركزية لمدارس المتفوقين والموهوبين</div><div>مدرسة المتفوقين في العلوم والتكنولوجيا بالمنوفية</div>
+          </div>
+        </div>` : "";
+      container.innerHTML = `${officialHeader}<div style="direction:rtl;text-align:center"><h2 style="margin:8px 0 14px;font-size:27px">${title}</h2><div style="display:flex;justify-content:space-between;font-size:17px;font-weight:bold;margin-bottom:18px"><span>الفصل: ${classText}</span><span>${periodText}</span></div></div>${tableHtml}<div style="margin-top:48px;text-align:right;font-size:21px;font-weight:bold">مدير المدرسة<br/><div style="height:90px"></div></div>`;
+      document.body.appendChild(container);
+      const canvas = await html2canvas(container,{scale:2,backgroundColor:"#ffffff",useCORS:true});
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+      const pageWidth=pdf.internal.pageSize.getWidth(), pageHeight=pdf.internal.pageSize.getHeight(), margin=8;
+      const imgWidth=pageWidth-margin*2, imgHeight=canvas.height*imgWidth/canvas.width;
+      // Keep the complete daily summary table and header together on the first page where possible.
+      let remaining=imgHeight, y=margin;
+      pdf.addImage(imgData,"PNG",margin,y,imgWidth,imgHeight);
+      remaining -= pageHeight-margin*2;
+      while(remaining>0){
+        pdf.addPage();
+        y=margin- (imgHeight-remaining);
+        pdf.addImage(imgData,"PNG",margin,y,imgWidth,imgHeight);
+        remaining -= pageHeight-margin*2;
+      }
+      pdf.save(reportType === "daily" ? "daily-report.pdf" : "monthly-report.pdf");
       showMessage("تم تصدير PDF بنجاح","success");
-
     }catch(error){
-
       console.log(error);
       showMessage("فشل تصدير PDF","error");
-
+    }finally{
+      if(container && container.parentNode) container.parentNode.removeChild(container);
     }
-
   }
 
   const totalAbsence =
