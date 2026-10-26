@@ -25,6 +25,9 @@ import html2canvas from "html2canvas";
 
 import { callAPI } from "../api";
 
+// ضع هنا رابط صورة شعار المدرسة المباشر (PNG أو JPG) ليظهر في ترويسة PDF.
+const SCHOOL_LOGO_URL = "https://i.postimg.cc/VsMM74cg/Picture1.png";
+
 function Reports(){
 
   const [reportType,setReportType] = useState("daily");
@@ -304,17 +307,20 @@ function Reports(){
         const headers = ["رقم الجلوس","اسم الطالبة","الفصل","عدد أيام الغياب (غ)","عدد أيام مرضي","تواريخ وحالات الغياب"];
         tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:14px;direction:rtl"><thead><tr>${headers.map(h=>`<th style="border:1px solid #333;padding:8px;background:#e5e7eb;text-align:center">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${[r.seat||"",r.name||"",r.className||"",r.totalAbsence||0,r.totalSick||0,r.statusDetails||r.dates||""].map(v=>`<td style="border:1px solid #333;padding:8px;text-align:center;vertical-align:middle">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
       }
+      const logoMarkup = SCHOOL_LOGO_URL && SCHOOL_LOGO_URL !== "PASTE_DIRECT_SCHOOL_LOGO_IMAGE_URL_HERE"
+        ? `<img src="${SCHOOL_LOGO_URL}" alt="شعار المدرسة" crossorigin="anonymous" style="display:block;width:125px;height:125px;object-fit:contain;margin:auto" />`
+        : `<div style="width:125px;height:125px;margin:auto;display:flex;align-items:center;justify-content:center;text-align:center;border:2px dashed #94a3b8;color:#64748b;font-size:13px">ضع رابط<br/>شعار المدرسة</div>`;
       const officialHeader = reportType === "daily" ? `
-        <div style="display:grid;grid-template-columns:1fr 150px 1fr;gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px">
-          <div dir="ltr" style="text-align:left;font-size:19px;line-height:1.8;font-weight:bold">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px;width:100%;box-sizing:border-box">
+          <div dir="ltr" style="text-align:left;font-size:19px;line-height:1.8;font-weight:bold;unicode-bidi:embed">
             <div>Ministry of Education</div><div>Central Unit of STEM Schools</div><div>Menofia STEM School</div>
           </div>
-          <div style="text-align:center;border:2px solid #64748b;border-radius:50%;width:120px;height:120px;margin:auto;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:bold;color:#334155">STEM<br/>MENOFIA</div>
-          <div dir="rtl" style="text-align:right;font-size:19px;line-height:1.8;font-weight:bold">
+          <div style="text-align:center">${logoMarkup}</div>
+          <div dir="rtl" style="text-align:right;font-size:19px;line-height:1.8;font-weight:bold;unicode-bidi:embed">
             <div>وزارة التربية والتعليم</div><div>الوحدة المركزية لمدارس المتفوقين والموهوبين</div><div>مدرسة المتفوقين في العلوم والتكنولوجيا بالمنوفية</div>
           </div>
         </div>` : "";
-      container.innerHTML = `${officialHeader}<div style="direction:rtl;text-align:center"><h2 style="margin:8px 0 14px;font-size:27px">${title}</h2><div style="display:flex;justify-content:space-between;font-size:17px;font-weight:bold;margin-bottom:18px"><span>الفصل: ${classText}</span><span>${periodText}</span></div></div>${tableHtml}<div style="margin-top:48px;text-align:right;font-size:21px;font-weight:bold">مدير المدرسة<br/><div style="height:90px"></div></div>`;
+      container.innerHTML = `${officialHeader}<div style="direction:rtl;text-align:center"><h2 style="margin:8px 0 14px;font-size:27px">${title}</h2><div style="display:flex;justify-content:space-between;font-size:17px;font-weight:bold;margin-bottom:18px"><span>الفصل: ${classText}</span><span>${periodText}</span></div></div>${tableHtml}<div style="margin-top:48px;text-align:left;direction:rtl;font-size:21px;font-weight:bold">مدير المدرسة<div style="height:90px"></div></div>`;
       document.body.appendChild(container);
       const canvas = await html2canvas(container,{scale:2,backgroundColor:"#ffffff",useCORS:true});
       const imgData = canvas.toDataURL("image/png");
