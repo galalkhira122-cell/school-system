@@ -284,7 +284,7 @@ function Reports(){
       container = document.createElement("div");
       Object.assign(container.style, {
         position:"fixed", left:"-20000px", top:"0", width:"1400px", padding:"28px",
-        background:"#fff", direction:"rtl", fontFamily:"Arial,Tahoma,sans-serif", color:"#111827",
+        background:"#fff", direction:"rtl", fontFamily:"Cairo, sans-serif", fontSize:"18px", color:"#111827",
         boxSizing:"border-box"
       });
       const title = reportType === "daily" ? "تقرير الغياب اليومي" : "تقرير الغياب الشهري";
@@ -300,28 +300,38 @@ function Reports(){
           present:Number(r.classPresent||0), absent:Number(r.classAbsent||0), names:r.absentNames||""
         })).sort((a,b)=>String(a.className).localeCompare(String(b.className),"en",{numeric:true}));
         if(!ordered.length) throw new Error("لا توجد بيانات جلسات لهذا التاريخ");
-        tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:17px;direction:rtl">
+        tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:18px;font-family:Cairo,sans-serif;direction:rtl">
           <thead><tr>${["م","الفصل","مقيد","حاضر","غائب","أسماء الغائبين"].map((h,i)=>`<th style="border:1px solid #222;padding:10px;background:#e9edf2;text-align:center;width:${[5,12,10,10,10,53][i]}%">${h}</th>`).join("")}</tr></thead>
           <tbody>${ordered.map((r,i)=>`<tr>${[i+1,r.className,r.registered,r.present,r.absent,r.names||"لا يوجد"].map((v,j)=>`<td style="border:1px solid #222;padding:10px;text-align:${j===5?'right':'center'};vertical-align:middle;overflow-wrap:anywhere">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
       }else{
         const headers = ["رقم الجلوس","اسم الطالبة","الفصل","عدد أيام الغياب (غ)","عدد أيام مرضي","تواريخ وحالات الغياب"];
-        tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:14px;direction:rtl"><thead><tr>${headers.map(h=>`<th style="border:1px solid #333;padding:8px;background:#e5e7eb;text-align:center">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${[r.seat||"",r.name||"",r.className||"",r.totalAbsence||0,r.totalSick||0,r.statusDetails||r.dates||""].map(v=>`<td style="border:1px solid #333;padding:8px;text-align:center;vertical-align:middle">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+        tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:18px;font-family:Cairo,sans-serif;direction:rtl"><thead><tr>${headers.map(h=>`<th style="border:1px solid #333;padding:8px;background:#e5e7eb;text-align:center">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${[r.seat||"",r.name||"",r.className||"",r.totalAbsence||0,r.totalSick||0,r.statusDetails||r.dates||""].map(v=>`<td style="border:1px solid #333;padding:8px;text-align:center;vertical-align:middle">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
       }
       const logoMarkup = SCHOOL_LOGO_URL && SCHOOL_LOGO_URL !== "PASTE_DIRECT_SCHOOL_LOGO_IMAGE_URL_HERE"
         ? `<img src="${SCHOOL_LOGO_URL}" alt="شعار المدرسة" crossorigin="anonymous" style="display:block;width:125px;height:125px;object-fit:contain;margin:auto" />`
         : `<div style="width:125px;height:125px;margin:auto;display:flex;align-items:center;justify-content:center;text-align:center;border:2px dashed #94a3b8;color:#64748b;font-size:13px">ضع رابط<br/>شعار المدرسة</div>`;
       const officialHeader = reportType === "daily" ? `
         <div style="display:grid;direction:ltr;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px;width:100%;box-sizing:border-box">
-          <div dir="ltr" style="text-align:left;font-size:19px;line-height:1.8;font-weight:bold;unicode-bidi:embed">
+          <div dir="ltr" style="text-align:left;font-size:18px;font-family:Cairo,sans-serif;line-height:1.8;font-weight:bold;unicode-bidi:embed">
             <div>Ministry of Education</div><div>Central Unit of STEM Schools</div><div>Menofia STEM School</div>
           </div>
           <div style="text-align:center">${logoMarkup}</div>
-          <div dir="rtl" style="text-align:right;font-size:19px;line-height:1.8;font-weight:bold;unicode-bidi:embed">
+          <div dir="rtl" style="text-align:right;font-size:18px;font-family:Cairo,sans-serif;line-height:1.8;font-weight:bold;unicode-bidi:embed">
             <div>وزارة التربية والتعليم</div><div>الوحدة المركزية لمدارس المتفوقين والموهوبين</div><div>مدرسة المتفوقين في العلوم والتكنولوجيا بالمنوفية</div>
           </div>
         </div>` : "";
-      container.innerHTML = `${officialHeader}<div style="direction:rtl;text-align:center"><h2 style="margin:8px 0 14px;font-size:27px">${title}</h2><div style="display:flex;justify-content:space-between;font-size:17px;font-weight:bold;margin-bottom:18px"><span>الفصل: ${classText}</span><span>${periodText}</span></div></div>${tableHtml}<div style="margin-top:48px;text-align:left;direction:rtl;font-size:21px;font-weight:bold">مدير المدرسة<div style="height:90px"></div></div>`;
+      container.innerHTML = `${officialHeader}<div style="direction:rtl;text-align:center"><h2 style="margin:8px 0 14px;font-size:24px;font-family:Cairo,sans-serif">${title}</h2><div style="display:flex;justify-content:space-between;font-size:18px;font-family:Cairo,sans-serif;font-weight:bold;margin-bottom:18px"><span>الفصل: ${classText}</span><span>${periodText}</span></div></div>${tableHtml}<div style="margin-top:48px;text-align:left;direction:rtl;font-size:18px;font-family:Cairo,sans-serif;font-weight:bold">مدير المدرسة<div style="height:90px"></div></div>`;
+      // Load Cairo before rendering the report to PDF.
+      let cairoLink = document.getElementById("school-report-cairo-font");
+      if(!cairoLink){
+        cairoLink = document.createElement("link");
+        cairoLink.id = "school-report-cairo-font";
+        cairoLink.rel = "stylesheet";
+        cairoLink.href = "https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap";
+        document.head.appendChild(cairoLink);
+      }
       document.body.appendChild(container);
+      if(document.fonts && document.fonts.ready){ await document.fonts.ready; }
       const canvas = await html2canvas(container,{scale:2,backgroundColor:"#ffffff",useCORS:true});
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
