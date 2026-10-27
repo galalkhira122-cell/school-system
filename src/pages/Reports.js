@@ -311,7 +311,7 @@ function Reports(){
         ? `<img src="${SCHOOL_LOGO_URL}" alt="شعار المدرسة" crossorigin="anonymous" style="display:block;width:125px;height:125px;object-fit:contain;margin:auto" />`
         : `<div style="width:125px;height:125px;margin:auto;display:flex;align-items:center;justify-content:center;text-align:center;border:2px dashed #94a3b8;color:#64748b;font-size:13px">ضع رابط<br/>شعار المدرسة</div>`;
       const officialHeader = reportType === "daily" ? `
-        <div style="display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px;width:100%;box-sizing:border-box">
+        <div style="display:grid;direction:ltr;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:18px;align-items:center;border-bottom:3px solid #555;padding-bottom:18px;margin-bottom:18px;width:100%;box-sizing:border-box">
           <div dir="ltr" style="text-align:left;font-size:19px;line-height:1.8;font-weight:bold;unicode-bidi:embed">
             <div>Ministry of Education</div><div>Central Unit of STEM Schools</div><div>Menofia STEM School</div>
           </div>
@@ -324,7 +324,7 @@ function Reports(){
       document.body.appendChild(container);
       const canvas = await html2canvas(container,{scale:2,backgroundColor:"#ffffff",useCORS:true});
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+      const pdf = new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
       const pageWidth=pdf.internal.pageSize.getWidth(), pageHeight=pdf.internal.pageSize.getHeight(), margin=8;
       const imgWidth=pageWidth-margin*2, imgHeight=canvas.height*imgWidth/canvas.width;
       // Keep the complete daily summary table and header together on the first page where possible.
